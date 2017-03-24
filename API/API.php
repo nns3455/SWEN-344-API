@@ -329,7 +329,7 @@ function human_resources_switch()
 function facility_management_switch()
 {
 	// Define the possible Facilities Management function URLs which the page can be accessed from
-	$possible_function_url = array("getRoom");
+	$possible_function_url = array("addClassroom", "reserveClassroom", "addDevice", "getClassroom", "searchClassrooms", "getDevice");
 
 	if (isset($_GET["function"]) && in_array($_GET["function"], $possible_function_url))
 	{
@@ -345,18 +345,88 @@ function facility_management_switch()
 					logError("Missing parameters. addClassroom requires: building, room, capacity");
 					return FALSE;
 				}
+			case "reserveClassroom":
+				if (isset($_POST["building"]) && isset($_POST["room"]) && isset($_POST["day"]) && isset($_POST["semester"]) && isset($_POST["timeslot"]) && isset($_POST["class"])) 
+				{
+					return addClassroom($_POST["building"], $_POST["room"], $_POST["day"], $_POST["semester"], $_POST["timeslot"], $_POST["class"]);
+				}
+				else 
+				{
+					logError("Missing parameters. reserveClassroom requires: building, room, day, semester, timeslot, class");
+					return FALSE;
+				}
+			case "addDevice":
+				if (isset($_POST["name"]) && isset($_POST["condition"])) 
+				{
+					return addDevice($_POST["name"], $_POST["condition"]);
+				}
+				else 
+				{
+					logError("Missing parameters. addDevice requires: name, condition");
+					return FALSE;
+				}
 			case "getClassroom":
-				// if has params
-				return getRoom();
-				// else
-				// return "Missing " . $_GET["param-name"]
+				if (isset($_GET["id"])) 
+				{
+					return getClassroom($_GET["id"]);
+				}
+				else 
+				{
+					logError("Missing parameters. getClassroom requires: id");
+					return FALSE;
+				}
+			case "searchClassrooms":
+				if (isset($_GET["size"]) && isset($_GET["semester"]) && isset($_GET["day"]) && isset($_GET["length"])) 
+				{
+					return searchClassrooms($_GET["size"], $_GET["semester"], $_GET["day"], $_GET["length"]);
+				}
+				else 
+				{
+					logError("Missing parameters. searchClassrooms requires: size, semester, day, length");
+					return FALSE;
+				}
+			case "getDevice":
+				if (isset($_GET["id"])) 
+				{
+					return getDevice($_GET["id"]);
+				}
+				else 
+				{
+					logError("Missing parameters. getDevice requires: id");
+					return FALSE;
+				}
 		}
 	}
 }
 
 //Define Functions Here
 
-function getFreeRoom()
+function addClassroom()
+{
+	return "TODO";
+}
+
+function reserveClassroom()
+{
+	return "TODO";
+}
+
+function addDevice()
+{
+	return "TODO";
+}
+
+function getClassroom()
+{
+	return "TODO";
+}
+
+function searchClassrooms()
+{
+	return "TODO";
+}
+
+function getDevice()
 {
 	return "TODO";
 }
