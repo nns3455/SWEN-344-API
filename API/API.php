@@ -335,7 +335,17 @@ function facility_management_switch()
 	{
 		switch ($_GET["function"])
 		{
-			case "getFreeRoom":
+			case "addClassroom":
+				if (isset($_POST["building"]) && isset($_POST["room"]) && isset($_POST["capacity"])) 
+				{
+					return addClassroom($_POST["building"], $_POST["room"], $_POST["capacity"]);
+				}
+				else 
+				{
+					logError("Missing parameters. addClassroom requires: building, room, capacity");
+					return FALSE;
+				}
+			case "getClassroom":
 				// if has params
 				return getRoom();
 				// else
