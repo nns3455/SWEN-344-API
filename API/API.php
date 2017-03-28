@@ -346,9 +346,9 @@ function facility_management_switch()
 					return FALSE;
 				}
 			case "reserveClassroom":
-				if (isset($_POST["building"]) && isset($_POST["room"]) && isset($_POST["day"]) && isset($_POST["semester"]) && isset($_POST["timeslot"]) && isset($_POST["class"])) 
+				if (isset($_POST["building"]) && isset($_POST["room"]) && isset($_POST["day"]) && isset($_POST["semester"]) && isset($_POST["timeslot"]) && isset($_POST["length"]) && isset($_POST["class"])) 
 				{
-					return reserveClassroom($_POST["building"], $_POST["room"], $_POST["day"], $_POST["semester"], $_POST["timeslot"], $_POST["class"]);
+					return reserveClassroom($_POST["building"], $_POST["room"], $_POST["day"], $_POST["semester"], $_POST["timeslot"], $_POST["length"], $_POST["class"]);
 				}
 				else 
 				{
@@ -406,7 +406,7 @@ function addClassroom($building, $room, $capacity)
 	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 	$sqlite->enableExceptions(true);
 	
-	$query = $sqlite->prepare("INSERT INTO Classroom (building, room, capacity) VALUES (:building, :room, :capacity)");
+	$query = $sqlite->prepare("INSERT INTO Classroom (BUILDING, ROOM, CAPACITY) VALUES (:building, :room, :capacity)");
 	$query->bindParam(':building', $building);
 	$query->bindParam(':room', $room);
 	$query->bindParam(':capacity', $capacity);
@@ -420,17 +420,18 @@ function addClassroom($building, $room, $capacity)
 	return $result;
 }
 
-function reserveClassroom($building, $room, $day, $semester, $timeslot, $class)
+function reserveClassroom($building, $room, $day, $semester, $timeslot, $length, $section)
 {
 	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 	$sqlite->enableExceptions(true);
 	
-	$query = $sqlite->prepare("INSERT INTO Reservation (building, room, day, semester, timeslot, class) VALUES (:building, :room, :day, :semester, :timeslot, :class)");
+	$query = $sqlite->prepare("INSERT INTO Reservation (BUILDING, ROOM, DAY_OF_WEEK, SEMESTER_ID, TIME_SLOT_START, DURATION, SECTION_ID) VALUES (:building, :room, :day, :semester, :timeslot, :length, :class)");
 	$query->bindParam(':building', $building);
 	$query->bindParam(':room', $room);
 	$query->bindParam(':day', $day);
 	$query->bindParam(':semester', $semester);
 	$query->bindParam(':timeslot', $timeslot);
+	$query->bindParam(':length', $length);
 	$query->bindParam(':class', $class);
 	$result = $query->execute();
 	
@@ -447,7 +448,7 @@ function addDevice($name, $condition)
 	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 	$sqlite->enableExceptions(true);
 	
-	$query = $sqlite->prepare("INSERT INTO Device (name, condition) VALUES (:name, :condition)");
+	$query = $sqlite->prepare("INSERT INTO Device (NAME, CONDITION) VALUES (:name, :condition)");
 	$query->bindParam(':name', $name);
 	$query->bindParam(':condition', $condition);
 	$result = $query->execute();
@@ -465,7 +466,7 @@ function getClassroom($id)
 	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 	$sqlite->enableExceptions(true);
 	
-	$query = $sqlite->prepare("SELECT * FROM Classroom WHERE id=:id");
+	$query = $sqlite->prepare("SELECT * FROM Classroom WHERE ID=:id");
 	$query->bindParam(':id', $id);		
 	$result = $query->execute();
 	
