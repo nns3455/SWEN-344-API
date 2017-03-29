@@ -809,24 +809,6 @@ function reserveClassroom($building, $room, $day, $semester, $timeslot, $length,
 	return $result;
 }
 
-function addDevice($name, $condition)
-{
-	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
-	$sqlite->enableExceptions(true);
-	
-	$query = $sqlite->prepare("INSERT INTO Device (NAME, CONDITION) VALUES (:name, :condition)");
-	$query->bindParam(':name', $name);
-	$query->bindParam(':condition', $condition);
-	$result = $query->execute();
-	
-	$result->finalize();
-	
-	// clean up any objects
-	$sqlite->close();
-	
-	return $result;
-}
-
 function getClassroom($id)
 {
 	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
@@ -859,6 +841,59 @@ function searchClassrooms($size, $semester, $day, $length)
 	$sqlite->close();
 	
 	return $result
+}
+
+function addDevice($name, $condition)
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+	
+	$query = $sqlite->prepare("INSERT INTO Device (NAME, CONDITION) VALUES (:name, :condition)");
+	$query->bindParam(':name', $name);
+	$query->bindParam(':condition', $condition);
+	$result = $query->execute();
+	
+	$result->finalize();
+	
+	// clean up any objects
+	$sqlite->close();
+	
+	return $result;
+}
+
+function updateDevice($uid, $condition)
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+	
+	$query = $sqlite->prepare("UPDATE Device SET CONDITION = :condition WHERE UID = :uid");
+	$query->bindParam(':condition', $condition);
+	$query->bindParam(':uid', $uid);
+	$result = $query->execute();
+	
+	$result->finalize();
+	
+	// clean up any objects
+	$sqlite->close();
+	
+	return $result;
+}
+
+function deleteDevice($uid)
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+	
+	$query = $sqlite->prepare("DELETE FROM Device WHERE UID = :uid");
+	$query->bindParam(':uid', $uid);
+	$result = $query->execute();
+	
+	$result->finalize();
+	
+	// clean up any objects
+	$sqlite->close();
+	
+	return $result;
 }
 
 function getDevice($id)
