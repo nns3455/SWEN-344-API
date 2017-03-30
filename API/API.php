@@ -5,7 +5,8 @@ $result = "An error has occurred";
 
 // needed globals
 $errorLogFile = "errors.txt";
-$databaseFile = getcwd(). "/../Database/SWEN344DB.db";
+$databaseFile = getcwd() . "/../Database/SWEN344DB.db";
+$facmanDbFile = dirname(__DIR__) . "/Database/SWEN344DB.db";
 
 // debug switch
 $sqliteDebug = true; //SET TO FALSE BEFORE OFFICIAL RELEASE
@@ -809,7 +810,7 @@ function facility_management_switch($getFunctions)
 
 function addClassroom($building, $room, $capacity)
 {
-	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite = new SQLite3($GLOBALS ["facmanDbFile"]);
 	$sqlite->enableExceptions(true);
 	
 	$query = $sqlite->prepare("INSERT INTO Classroom (BUILDING, ROOM, CAPACITY) VALUES (:building, :room, :capacity)");
@@ -828,7 +829,7 @@ function addClassroom($building, $room, $capacity)
 
 function getClassroom($id)
 {
-	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite = new SQLite3($GLOBALS ["facmanDbFile"]);
 	$sqlite->enableExceptions(true);
 	
 	$query = $sqlite->prepare("SELECT * FROM Classroom WHERE ID=:id");
@@ -845,7 +846,7 @@ function getClassroom($id)
 
 function updateClassroom($id, $capacity, $rmNumber, $bid)
 {
-	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite = new SQLite3($GLOBALS ["facmanDbFile"]);
 	$sqlite->enableExceptions(true);
 	
 	$query = $sqlite->prepare("UPDATE Classroom SET CAPACITY = :capacity, ROOM_NUM = :rmNumber, BUILDING_ID = :bid WHERE ID=:id");
@@ -865,7 +866,7 @@ function updateClassroom($id, $capacity, $rmNumber, $bid)
 
 function deleteClassroom($id)
 {
-	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite = new SQLite3($GLOBALS ["facmanDbFile"]);
 	$sqlite->enableExceptions(true);
 	
 	$query = $sqlite->prepare("DELETE FROM Classroom WHERE ID = :id");
@@ -882,7 +883,7 @@ function deleteClassroom($id)
 
 function reserveClassroom($building, $room, $day, $semester, $timeslot, $length, $section)
 {
-	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite = new SQLite3($GLOBALS ["facmanDbFile"]);
 	$sqlite->enableExceptions(true);
 	
 	$query = $sqlite->prepare("INSERT INTO Reservation (BUILDING, ROOM, DAY_OF_WEEK, SEMESTER_ID, TIME_SLOT_START, DURATION, SECTION_ID) VALUES (:building, :room, :day, :semester, :timeslot, :length, :class)");
@@ -906,7 +907,7 @@ function reserveClassroom($building, $room, $day, $semester, $timeslot, $length,
 function searchClassrooms($size, $semester, $day, $length)
 {
 	// TODO: actually make it search
-	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite = new SQLite3($GLOBALS ["facmanDbFile"]);
 	$sqlite->enableExceptions(true);
 	
 	$query = $sqlite->prepare("SELECT * FROM Classroom");	
@@ -922,7 +923,7 @@ function searchClassrooms($size, $semester, $day, $length)
 
 function addDevice($name, $condition)
 {
-	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite = new SQLite3($GLOBALS ["facmanDbFile"]);
 	$sqlite->enableExceptions(true);
 	
 	$query = $sqlite->prepare("INSERT INTO Device (NAME, CONDITION) VALUES (:name, :condition)");
@@ -940,24 +941,24 @@ function addDevice($name, $condition)
 
 function getDevice($id)
 {
-	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite = new SQLite3($GLOBALS ["facmanDbFile"]);
 	$sqlite->enableExceptions(true);
-	
-	$query = $sqlite->prepare("SELECT * FROM Device WHERE id=:id");
-	$query->bindParam(':id', $id);		
+
+	$query = $sqlite->prepare("SELECT * FROM Device WHERE ID=:id");
+    $query->bindParam(':id', $id);        
 	$result = $query->execute();
 	
-	$result->finalize();
-	
-	// clean up any objects
-	$sqlite->close();
-	
-	return $result;
+    if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
+    {
+        $result->finalize();
+        $sqlite->close();
+        return $record;
+    }
 }
 
 function updateDevice($uid, $condition)
 {
-	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite = new SQLite3($GLOBALS ["facmanDbFile"]);
 	$sqlite->enableExceptions(true);
 	
 	$query = $sqlite->prepare("UPDATE Device SET CONDITION = :condition WHERE UID = :uid");
@@ -975,7 +976,7 @@ function updateDevice($uid, $condition)
 
 function deleteDevice($uid)
 {
-	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite = new SQLite3($GLOBALS ["facmanDbFile"]);
 	$sqlite->enableExceptions(true);
 	
 	$query = $sqlite->prepare("DELETE FROM Device WHERE UID = :uid");
