@@ -753,9 +753,9 @@ function facility_management_switch($getFunctions)
 					return FALSE;
 				}
 			case "searchClassrooms":
-				if (isset($_GET["size"]) && isset($_GET["semester"]) && isset($_GET["day"]) && isset($_GET["length"])) 
+				if (isset($_GET["size"]) && isset($_GET["term"]) && isset($_GET["day"]) && isset($_GET["length"]))
 				{
-					return searchClassrooms($_GET["size"], $_GET["semester"], $_GET["day"], $_GET["length"]);
+					return searchClassrooms($_GET["size"], $_GET["term"], $_GET["day"], $_GET["length"]);
 				}
 				else 
 				{
@@ -930,21 +930,63 @@ function reserveClassroom($building, $room, $day, $semester, $timeslot, $length,
 	return $result;
 }
 
-function searchClassrooms($size, $semester, $day, $length)
+function getValidClassroomTimes($classrooms, $reservations, $length)
 {
-	// TODO: actually make it search
-	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
-	$sqlite->enableExceptions(true);
+	$classroomTimes = array();
 	
-	$query = $sqlite->prepare("SELECT * FROM Classroom");	
-	$result = $query->execute();
+	foreach($classrooms as $room) {
+		// Initially all timeslots are available
+		$classroomTimes[$room["ID"]] = [1,2,3,4,5,6,7,8,9,10,11,12,13];
+	}
 	
-	$result->finalize();
-	
-	// clean up any objects
-	$sqlite->close();
-	
-	return $result;
+	foreach($reservations as $res) {
+		$room_id = $res["CLASSROOM_ID"];
+		$start_time = $res["TIME_SLOT_START"];
+		$duration = $res["DURATION"];
+	}
+}
+
+function searchClassrooms($capacity, $term, $day, $length)
+{
+	try
+	{
+		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+		$sqlite->enableExceptions(true);
+		$query = $sqlite->prepare("SELECT * FROM Classroom");
+		$result = $query->execute();
+		$classrooms = array();
+		
+		while($row = $result->fetchArray(SQLITE3_ASSOC)) {	
+			array_push($classrooms, $row);
+		}
+		$result->finalize();
+		
+		
+		$query2 = $sqlite->prepare("SELECT * FROM Reservation INNER JOIN Section WHERE Section.TERM_ID=:term AND Reservation.DAY_OF_WEEK=:day");
+		$query2->bindParam(':term', $term);
+		$query2->bindParam(':day', $day);
+		$result2 = $query2->execute();
+
+		$reservations = array();
+		
+		while($row = $result2->fetchArray(SQLITE3_ASSOC)) {	
+			array_push($reservations, $row);
+		}
+		$result2->finalize();
+
+		// clean up any objects
+		$sqlite->close();
+		return $classrooms;
+		//return getValidClassroomTimes($classrooms, $reservations, $length);
+	}
+	catch (Exception $exception)
+	{
+		if ($GLOBALS ["sqliteDebug"])
+		{
+			return $exception->getMessage();
+		}
+		logError($exception);
+	}
 }
 
 function addDevice($name, $condition)
