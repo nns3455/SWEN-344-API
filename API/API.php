@@ -722,9 +722,9 @@ function facility_management_switch($getFunctions)
 					return FALSE;
 				}
 			case "updateClassroom":
-				if (isset($_POST["id"])) 
+				if (isset($_POST["id"]) && isset($_POST["building"]) && isset($_POST["room"]) && isset($_POST["capacity"])) 
 				{
-					return updateClassroom($_POST["id"]);
+					return updateClassroom($_POST["id"], $_POST["building"], $_POST["room"], $_POST["capacity"]);
 				}
 				else 
 				{
@@ -739,7 +739,6 @@ function facility_management_switch($getFunctions)
 				else 
 				{
 					logError("Missing parameters. deleteClassroom requires: id");
-					echo "missing param";
 					return FALSE;
 				}
 			case "reserveClassroom":
@@ -753,9 +752,9 @@ function facility_management_switch($getFunctions)
 					return FALSE;
 				}
 			case "searchClassrooms":
-				if (isset($_GET["size"]) && isset($_GET["term"]) && isset($_GET["day"]) && isset($_GET["length"]))
+				if (isset($_GET["size"]) && isset($_GET["semester"]) && isset($_GET["day"]) && isset($_GET["length"])) 
 				{
-					return searchClassrooms($_GET["size"], $_GET["term"], $_GET["day"], $_GET["length"]);
+					return searchClassrooms($_GET["size"], $_GET["semester"], $_GET["day"], $_GET["length"]);
 				}
 				else 
 				{
@@ -785,13 +784,13 @@ function facility_management_switch($getFunctions)
 			case "getDevices":
 				return getDevices();
 			case "updateDevice":
-				if (isset($_POST["uid"]) && isset($_POST["condition"])) 
+				if (isset($_POST["id"]) && isset($_POST["condition"]) && isset($_POST["name"])) 
 				{
-					return updateDevice($_POST["uid"], $_POST["condition"]);
+					return updateDevice($_POST["id"], $_POST["condition"], $_POST["checkoutDate"], $_POST["name"], $_POST["userId"]);
 				}
 				else 
 				{
-					logError("Missing parameters. updateDevice requires: uid, condition");
+					logError("Missing parameters. updateDevice requires: id, condition, name, userId,");
 					return FALSE;
 				}
 			case "deleteDevice":
@@ -883,8 +882,6 @@ function updateClassroom($id, $capacity, $rmNumber, $bid)
 	$result = $query->execute();
 	
 	$result->finalize();
-	
-	// clean up any objects
 	$sqlite->close();
 	
 	return $result;
@@ -900,8 +897,6 @@ function deleteClassroom($id)
 	$result = $query->execute();
 	
 	$result->finalize();
-	
-	// clean up any objects
 	$sqlite->close();
 	
 	return $result;
@@ -930,63 +925,21 @@ function reserveClassroom($building, $room, $day, $semester, $timeslot, $length,
 	return $result;
 }
 
-function getValidClassroomTimes($classrooms, $reservations, $length)
+function searchClassrooms($size, $semester, $day, $length)
 {
-	$classroomTimes = array();
+	// TODO: actually make it search
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
 	
-	foreach($classrooms as $room) {
-		// Initially all timeslots are available
-		$classroomTimes[$room["ID"]] = [1,2,3,4,5,6,7,8,9,10,11,12,13];
-	}
+	$query = $sqlite->prepare("SELECT * FROM Classroom");	
+	$result = $query->execute();
 	
-	foreach($reservations as $res) {
-		$room_id = $res["CLASSROOM_ID"];
-		$start_time = $res["TIME_SLOT_START"];
-		$duration = $res["DURATION"];
-	}
-}
-
-function searchClassrooms($capacity, $term, $day, $length)
-{
-	try
-	{
-		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
-		$sqlite->enableExceptions(true);
-		$query = $sqlite->prepare("SELECT * FROM Classroom");
-		$result = $query->execute();
-		$classrooms = array();
-		
-		while($row = $result->fetchArray(SQLITE3_ASSOC)) {	
-			array_push($classrooms, $row);
-		}
-		$result->finalize();
-		
-		
-		$query2 = $sqlite->prepare("SELECT * FROM Reservation INNER JOIN Section WHERE Section.TERM_ID=:term AND Reservation.DAY_OF_WEEK=:day");
-		$query2->bindParam(':term', $term);
-		$query2->bindParam(':day', $day);
-		$result2 = $query2->execute();
-
-		$reservations = array();
-		
-		while($row = $result2->fetchArray(SQLITE3_ASSOC)) {	
-			array_push($reservations, $row);
-		}
-		$result2->finalize();
-
-		// clean up any objects
-		$sqlite->close();
-		return $classrooms;
-		//return getValidClassroomTimes($classrooms, $reservations, $length);
-	}
-	catch (Exception $exception)
-	{
-		if ($GLOBALS ["sqliteDebug"])
-		{
-			return $exception->getMessage();
-		}
-		logError($exception);
-	}
+	$result->finalize();
+	
+	// clean up any objects
+	$sqlite->close();
+	
+	return $result;
 }
 
 function addDevice($name, $condition)
@@ -1020,7 +973,7 @@ function getDevices()
 	}
 	
 	$result->finalize();
-        $sqlite->close();
+    $sqlite->close();
 
 	return $records;
 }
@@ -1043,19 +996,20 @@ function getDevice($id)
     }
 }
 
-function updateDevice($uid, $condition)
+function updateDevice($id, $condition, $checkoutDate, $name, $userId)
 {
 	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 	$sqlite->enableExceptions(true);
 	
-	$query = $sqlite->prepare("UPDATE Device SET CONDITION = :condition WHERE UID = :uid");
+	$query = $sqlite->prepare("UPDATE Device SET CONDITION = :condition, CHECK_OUT_DATE = :checkoutDate, NAME = :name, USER_ID = :userId WHERE ID = :id");
 	$query->bindParam(':condition', $condition);
-	$query->bindParam(':uid', $uid);
+	$query->bindParam(':id', $id);
+	$query->bindParam(':name', $name);
+	$query->bindParam(':userId', $userId);
+	$query->bindParam(':checkoutDate', $checkoutDate);
 	$result = $query->execute();
 	
 	$result->finalize();
-	
-	// clean up any objects
 	$sqlite->close();
 	
 	return $result;
@@ -1075,7 +1029,6 @@ function deleteDevice($uid)
 	
 	return $result;
 } 
-
 
 //////////////////////
 //Student Enrollment//
