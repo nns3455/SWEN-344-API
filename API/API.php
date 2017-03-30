@@ -687,7 +687,7 @@ function updateProfInfo($id, $salary, $title) {
 function facility_management_switch($getFunctions)
 {
 	// Define the possible Facilities Management function URLs which the page can be accessed from
-	$possible_function_url = array("addClassroom", "getClassroom", "updateClassroom", "deleteClassroom", "reserveClassroom", "searchClassrooms", "addDevice", "getDevice", "updateDevice", "deleteDevice");
+	$possible_function_url = array("getClassrooms", "addClassroom", "getClassroom", "updateClassroom", "deleteClassroom", "reserveClassroom", "searchClassrooms", "addDevice", "getDevices", "getDevice", "updateDevice", "deleteDevice");
 
 	if ($getFunctions)
 	{
@@ -698,6 +698,8 @@ function facility_management_switch($getFunctions)
 	{
 		switch ($_GET["function"])
 		{
+			case "getClassrooms":
+				return getClassrooms();
 			case "addClassroom":
 				if (isset($_POST["building"]) && isset($_POST["room"]) && isset($_POST["capacity"])) 
 				{
@@ -778,6 +780,8 @@ function facility_management_switch($getFunctions)
 					logError("Missing parameters. getDevice requires: id");
 					return FALSE;
 				}
+			case "getDevices":
+				return getDevices();
 			case "updateDevice":
 				if (isset($_POST["uid"]) && isset($_POST["condition"])) 
 				{
@@ -808,20 +812,37 @@ function facility_management_switch($getFunctions)
 
 //Define Functions Here
 
+function getClassrooms(){
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+	$query = $sqlite->prepare("SELECT * FROM Classroom");
+	$result = $query->execute();
+
+	$records = array();
+	
+	while($row = $result->fetchArray(SQLITE3_ASSOC)) {	
+		array_push($records, $row);
+	}
+	
+	$result->finalize();
+    $sqlite->close();
+
+	return $records;
+}
+
 function addClassroom($building, $room, $capacity)
 {
 	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 	$sqlite->enableExceptions(true);
 	
-	$query = $sqlite->prepare("INSERT INTO Classroom (BUILDING, ROOM, CAPACITY) VALUES (:building, :room, :capacity)");
+	$query = $sqlite->prepare("INSERT INTO Classroom (BUILDING_ID, ROOM_NUM, CAPACITY) VALUES (:building, :room, :capacity)");
 	$query->bindParam(':building', $building);
 	$query->bindParam(':room', $room);
 	$query->bindParam(':capacity', $capacity);
+	
 	$result = $query->execute();
 	
 	$result->finalize();
-	
-	// clean up any objects
 	$sqlite->close();
 	
 	return $result;
@@ -931,14 +952,32 @@ function addDevice($name, $condition)
 	$query = $sqlite->prepare("INSERT INTO Device (NAME, CONDITION) VALUES (:name, :condition)");
 	$query->bindParam(':name', $name);
 	$query->bindParam(':condition', $condition);
+
 	$result = $query->execute();
 	
 	$result->finalize();
-	
-	// clean up any objects
 	$sqlite->close();
 	
 	return $result;
+}
+
+function getDevices()
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+	$query = $sqlite->prepare("SELECT * FROM Device");
+	$result = $query->execute();
+
+	$records = array();
+	
+	while($row = $result->fetchArray(SQLITE3_ASSOC)) {	
+		array_push($records, $row);
+	}
+	
+	$result->finalize();
+        $sqlite->close();
+
+	return $records;
 }
 
 function getDevice($id)
@@ -947,7 +986,8 @@ function getDevice($id)
 	$sqlite->enableExceptions(true);
 
 	$query = $sqlite->prepare("SELECT * FROM Device WHERE ID=:id");
-    $query->bindParam(':id', $id);        
+    	$query->bindParam(':id', $id);        
+
 	$result = $query->execute();
 	
     if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
