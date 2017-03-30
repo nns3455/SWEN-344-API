@@ -845,13 +845,13 @@ function facility_management_switch($getFunctions)
 			case "getDevices":
 				return getDevices();
 			case "updateDevice":
-				if (isset($_POST["uid"]) && isset($_POST["condition"]))
+				if (isset($_POST["id"]) && isset($_POST["condition"]))
 				{
-					return updateDevice($_POST["uid"], $_POST["condition"]);
+					return updateDevice($_POST["id"], $_POST["condition"]);
 				}
 				else
 				{
-					logError("Missing parameters. updateDevice requires: uid, condition");
+					logError("Missing parameters. updateDevice requires: id, condition");
 					return FALSE;
 				}
 			case "deleteDevice":
@@ -1102,14 +1102,14 @@ function getDevice($id)
     }
 }
 
-function updateDevice($uid, $condition)
+function updateDevice($id, $condition)
 {
 	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 	$sqlite->enableExceptions(true);
 
-	$query = $sqlite->prepare("UPDATE Device SET CONDITION = :condition WHERE UID = :uid");
+	$query = $sqlite->prepare("UPDATE Device SET CONDITION = :condition WHERE ID = :id");
 	$query->bindParam(':condition', $condition);
-	$query->bindParam(':uid', $uid);
+	$query->bindParam(':id', $id);
 	$result = $query->execute();
 
 	$result->finalize();
