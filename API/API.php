@@ -836,10 +836,12 @@ function getClassroom($id)
 	$query->bindParam(':id', $id);		
 	$result = $query->execute();
 	
-	$result->finalize();
-	
-	// clean up any objects
-	$sqlite->close();
+	if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
+    {
+        $result->finalize();
+        $sqlite->close();
+        return $record;
+    }
 	
 	return $result;
 }
