@@ -15,6 +15,8 @@ IF "%selection%" == "y" (
 	sqlite3 %fileName% < "TeamHumanResources.sql"
 	sqlite3 %fileName% < "TeamEnrollment.sql"
 	sqlite3 %fileName% < "TeamFacilityManagement.sql"
+
+	echo Finished creating tables.
 	sqlite3 %fileName% < "TeamGrading.sql"
 )
 pause 

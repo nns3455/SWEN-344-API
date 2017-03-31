@@ -1,13 +1,13 @@
 <?php
-require("Bookstore.php");
+//require("Bookstore.php");
 
 // initial result of the api
 $result = "An error has occurred";
 
 // needed globals
 $errorLogFile = "errors.txt";
-
-$databaseFile = getcwd(). "/../Database/SWEN344DB.db";
+// $databaseFile = getcwd() . "/../Database/SWEN344DB.db";
+$databaseFile = dirname(__DIR__) . "/Database/SWEN344DB.db";
 
 // debug switch
 $sqliteDebug = true; //SET TO FALSE BEFORE OFFICIAL RELEASE
@@ -22,12 +22,12 @@ function general_switch($getFunctions)
 	// Define the possible general function URLs which the page can be accessed from
 	$possible_function_url = array("test", "login", "createUser", "getUsers", "getStudent", "postStudent", "getProfessor",
 					"getAdmin", "getCourse", "postCourse");
-				
+
 	if ($getFunctions)
 	{
 		return $possible_function_url;
 	}
-	
+
 	if (isset($_GET["function"]) && in_array($_GET["function"], $possible_function_url))
 	{
 		switch ($_GET["function"])
@@ -51,7 +51,7 @@ function general_switch($getFunctions)
 				{
 					return getStudent($_GET["studentID"]);
 				}
-				else 
+				else
 				{
 					return "Missing studentID parameter";
 				}
@@ -117,7 +117,7 @@ function general_switch($getFunctions)
 				else {
 					return "Missing parameter(s)";
 				}
-				
+
 			case "createUser":
 				if (isset($_POST["username"]) &&
 					isset($_POST["password"]) &&
@@ -138,7 +138,7 @@ function general_switch($getFunctions)
 					else
 					{
 						logError("createUser ~ Required parameters were not submit correctly.");
-						return ("createUser One or more parameters were not provided");
+						return ("One or more parameters were not provided");
 					}
 		}
 	}
@@ -231,38 +231,38 @@ function login($username, $password)
 {
 	if (loginValid($username, $password))
 	{
-		try 
+		try
 		{
 			$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 			$sqlite->enableExceptions(true);
-			
+
 			//prepare query to protect from sql injection
 			$query = $sqlite->prepare("SELECT * FROM User WHERE USERNAME=:username");
-			$query->bindParam(':username', $username);		
+			$query->bindParam(':username', $username);
 			$result = $query->execute();
-			
-			
+
+
 			//$sqliteResult = $sqlite->query($queryString);
-			
-			if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
+
+			if ($record = $result->fetchArray(SQLITE3_ASSOC))
 			{
 				$result->finalize();
 				$sqlite->close();
-				
+
 				return $record;
 			}
-		
+
 		}
 		catch (Exception $exception)
 		{
-			if ($GLOBALS ["sqliteDebug"]) 
+			if ($GLOBALS ["sqliteDebug"])
 			{
 				return $exception->getMessage();
 			}
 			logError($exception);
 		}
 	}
-	else 
+	else
 	{
 		return null;
 	}
@@ -318,13 +318,13 @@ function getUsers()
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		//prepare query to protect from sql injection
-		$query = $sqlite->prepare("SELECT ID, USERNAME, FIRSTNAME, LASTNAME, EMAIL, ROLE FROM User");		
+		$query = $sqlite->prepare("SELECT ID, USERNAME, FIRSTNAME, LASTNAME, EMAIL, ROLE FROM User");
 		$result = $query->execute();
-		
+
 		$record = array();
-		
+
 		while($arr=$result->fetchArray(SQLITE3_ASSOC))
 		{
 			array_push($record, $arr);
@@ -336,7 +336,7 @@ function getUsers()
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -349,24 +349,24 @@ function getStudent($studentID)
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		//prepare query to protect from sql injection
 		$query = $sqlite->prepare("SELECT * FROM Student WHERE USER_ID=:user_ID");
 		$query->bindParam(':user_ID', $studentID);
 		$result = $query->execute();
-		
+
 		//$sqliteResult = $sqlite->query($queryString);
-		if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
+		if ($record = $result->fetchArray(SQLITE3_ASSOC))
 		{
 			$result->finalize();
 			$sqlite->close();
-			
+
 			return $record;
 		}
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -380,14 +380,14 @@ function postStudent($yearLevel, $gpa)
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
-		
+
+
 		$query = $sqlite->prepare("INSERT INTO Student (YEAR_LEVEL, GPA) VALUES (:yearLevel, :gpa)");
 		$query->bindParam(':yearLevel', $yearLevel);
 		$query->bindParam(':gpa', $gpa);
 		$result = $query->execute();
-		
-		if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
+
+		if ($record = $result->fetchArray(SQLITE3_ASSOC))
 		{
 			$result->finalize();
 			// clean up any objects
@@ -397,7 +397,7 @@ function postStudent($yearLevel, $gpa)
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -411,22 +411,22 @@ function getProfessor($professorID)
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		$query = $sqlite->prepare("SELECT * FROM Professor WHERE USER_ID=:user_ID");
 		$query->bindParam(':user_ID', $professorID);
 		$result = $query->execute();
-		
-		if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
+
+		if ($record = $result->fetchArray(SQLITE3_ASSOC))
 		{
 			$result->finalize();
 			$sqlite->close();
-			
+
 			return $record;
 		}
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -436,93 +436,17 @@ function getProfessor($professorID)
 
 function getAdmin($adminID)
 {
-	try
-	{
-		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
-		$sqlite->enableExceptions(true);
-		
-		$query = $sqlite->prepare("SELECT * FROM Admin WHERE USER_ID=:user_ID");
-		$query->bindParam(':user_ID', $adminID);
-		$result = $query->execute();
-		
-		if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
-		{
-			$result->finalize();
-			$sqlite->close();
-			
-			return $record;
-		}
-	}
-	catch (Exception $exception)
-	{
-		if ($GLOBALS ["sqliteDebug"]) 
-		{
-			return $exception->getMessage();
-		}
-		logError($exception);
-	}
+	return "TODO";
 }
 
 function getCourse($courseID)
 {
-	try
-	{
-		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
-		$sqlite->enableExceptions(true);
-		
-		$query = $sqlite->prepare("SELECT * FROM Course WHERE ID=:ID");
-		$query->bindParam(':ID', $courseID);
-		$result = $query->execute();
-		
-		if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
-		{
-			$result->finalize();
-			$sqlite->close();
-			
-			return $record;
-		}
-	}
-	catch (Exception $exception)
-	{
-		if ($GLOBALS ["sqliteDebug"]) 
-		{
-			return $exception->getMessage();
-		}
-		logError($exception);
-	}
+	return "TODO";
 }
 
 function postCourse($courseCode, $courseName, $credits, $gpa)
 {
-	try
-	{
-		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
-		$sqlite->enableExceptions(true);
-		
-		
-		$query = $sqlite->prepare("INSERT INTO Course (COURSE_CODE, NAME, CREDITS, MIN_GPA) VALUES (:code, :name, :credits, :gpa)");
-		$query->bindParam(':code', $courseCode);
-		$query->bindParam(':name', $courseName);
-		$query->bindParam(':credits', $credits);
-		$query->bindParam(':gpa', $gpa);
-		$result = $query->execute();
-		
-		if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
-		{
-			$result->finalize();
-			// clean up any objects
-			$sqlite->close();
-			return $record;
-		}
-	}
-	catch (Exception $exception)
-	{
-		if ($GLOBALS ["sqliteDebug"]) 
-		{
-			return $exception->getMessage();
-		}
-		logError($exception);
-	}
+	return "TODO";
 }
 
 ////////////////////////
@@ -533,7 +457,60 @@ function postCourse($courseCode, $courseName, $credits, $gpa)
 //Book Store//
 //////////////
 
-//Handeled in external file
+// Switchboard to Book Store Functions
+function book_store_switch($getFunctions)
+{
+	// Define the possible Book Store function URLs which the page can be accessed from
+	$possible_function_url = array("getBook", "getSectionBook", "postBook");
+
+	if ($getFunctions)
+	{
+		return $possible_function_url;
+	}
+
+	if (isset($_GET["function"]) && in_array($_GET["function"], $possible_function_url))
+	{
+		switch ($_GET["function"])
+		{
+			case "getBook":
+				// if has params
+				return getBook();
+				// else
+				// return "Missing " . $_GET["param-name"]
+			case "getSectionBook":
+				// if has params
+				return getSectionBook();
+				// else
+				// return "Missing " . $_GET["param-name"]
+			case "postBook":
+				// if has params
+				return postBook();
+				// else
+				// return "Missing " . $_GET["param-name"]
+		}
+	}
+	else
+	{
+		return "Function does not exist.";
+	}
+}
+
+//Define Functions Here
+
+function getBook()
+{
+	return "TODO";
+}
+
+function getSectionBook()
+{
+	return "TODO";
+}
+
+function postBook()
+{
+	return "TODO";
+}
 
 ///////////////////
 //Human Resources//
@@ -568,7 +545,7 @@ function human_resources_switch($getFunctions)
                 {
                 	return "Missing a parameter";
                 }
-                
+
             case "updatePerson":
             	if ((isset($_POST["username"]) && $_POST["username"] != null)
 					&& (isset($_POST["fname"]) && $_POST["fname"] != null)
@@ -583,7 +560,7 @@ function human_resources_switch($getFunctions)
                 {
                 	return "Missing a parameter";
                 }
-               
+
             case "updatePassword":
             	if ((isset($_POST["username"]) && $_POST["username"] != null)
 					&& (isset($_POST["password"]) && $_POST["password"] != null)
@@ -594,7 +571,7 @@ function human_resources_switch($getFunctions)
                 {
                 	return "Missing a parameter";
                 }
-                
+
             case "updateName":
             	if ((isset($_POST["username"]) && $_POST["username"] != null)
 					&& (isset($_POST["fname"]) && $_POST["fname"] != null)
@@ -631,7 +608,7 @@ function human_resources_switch($getFunctions)
 						$_POST["salary"],
 						$_POST["phone"]
 						);
-						
+
                 }
                 else
                 {
@@ -681,84 +658,68 @@ function human_resources_switch($getFunctions)
 	}
 }
 
-//Define Functions Here
-
-// Test connection for Human Resource
-function testThis()
-{
+function testThis() {
     return "MOO";
 }
 
-// Update First and Last name with username
-// Input Parameters:
-//  First name, Last name
-// Main Input Parameter:
-//  Username
-function updateFullName($username, $fname, $lname)
-{
+//Define Functions Here
+function updateFullName($username, $fname, $lname) {
     $success = false;
+
     try
-    {
-        // Open a connection to database
+	{
         $sqlite = new SQLite3($GLOBALS ["databaseFile"]);
         $sqlite->enableExceptions(true);
-        // Prevent SQL Injection
-        $query = $sqlite->prepare("UPDATE User SET FIRSTNAME=:fname, LASTNAME=:lname WHERE USERNAME=:username");
-        // Set variables to query
+
+        $query = $sqlite->prepare("UPDATE Users SET FIRSTNAME=:fname, LASTNAME=:lname WHERE USERNAME=:username");
         $query->bindParam(':username',$username);
         $query->bindParam(':fname',$fname);
         $query->bindParam(':lname',$lname);
+
         $query->execute();
-        // Clear up the connection
         $sqlite->close();
+
         $success = true;
     }
-    catch (Exception $exception)
-    {
+	catch (Exception $exception)
+	{
         if ($GLOBALS ["sqliteDebug"])
-        {
+		{
 			return $exception->getMessage();
 		}
 		logError($exception);
 	}
-	
+
 	return $success;
 }
 
-// Update password with username
-// Input parameter:
-//  Password
-// Main Input Parameter to update specific user:
-//  Username
-function updatePassword($username, $password)
-{
+function updatePassword($username, $password) {
     $success = false;
 
     try
-    {
-        // Open a connection to database
+	{
         $sqlite = new SQLite3($GLOBALS ["databaseFile"]);
-        $sqlite->enableExceptions(true);
-        // Prevent SQL Injection
-        $query = $sqlite->prepare("UPDATE User SET PASSWORD=:password WHERE USERNAME=:username");
-        // Set variables to query
+        $sqlite->enableExeception(true);
+
+        $query = $sqlite->prepare("UPDATE Users SET PASSWORD=:password WHERE USERNAME=:username");
         $query->bindParam(':username',$username);
         $query->bindParam(':password',encrypt($password));
+
         $query->execute();
-        // Clear up the connection
         $sqlite->close();
+
         $success = true;
     }
-    catch (Exception $exception)
-    {
+	catch (Exception $exception)
+	{
         if ($GLOBALS ["sqliteDebug"])
         {
             return $exception->getMessage();
         }
-		logError($exception);
     }
     return $success;
 }
+
 
 // Update personal information with username
 // Input parameters:
@@ -768,20 +729,25 @@ function updatePassword($username, $password)
 function updatePersonalInfo($username, $fname, $lname, $email, $address, $phone)
 {
     $success = false;
-	
+
     try
-    {
-		// Open a connection to database
+	{
         $sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+<<<<<<< HEAD
         $sqlite->enableExceptions(true);
 		// Prevent SQL Injection
         $query = $sqlite->prepare("UPDATE User SET FIRSTNAME=:fname, LASTNAME=:lname, EMAIL=:email WHERE USERNAME=:username");
 		// Set variables to query
+=======
+        $sqlite->enableException(true);
+
+        $query = $sqlite->prepare("UPDATE Users SET FIRSTNAME=:fname LASTNAME=:lname EMAIL=:email ADDRESS=:address WHERE USERNAME=:username");
+>>>>>>> refs/remotes/origin/master
         $query->bindParam(':username', $username);
         $query->bindParam(':fname', $fname);
         $query->bindParam(':lname', $lname);
         $query->bindParam(':email', $email);
-		
+
         $result = $query->execute();
         $result->finalize();
 
@@ -808,23 +774,22 @@ function updatePersonalInfo($username, $fname, $lname, $email, $address, $phone)
         $query->bindParam(":phone", $phone);
         $query->bindParam(":userId", $userId);
         $query->execute();
-        // Clear up the connection
-		$sqlite->close();
-		
+        $sqlite->close();
+
         $success = true;
     }
-    catch (Exception $exception)
-    {
+	catch (Exception $exception)
+	{
         if($GLOBAL ["sqliteDebug"])
         {
             return $exception->getMessage();
         }
-		logError($exception);
     }
-	
+
     return $success;
 }
 
+<<<<<<< HEAD
 // Update professional information with username
 // Input parameters:
 //  Salary, Title
@@ -843,24 +808,38 @@ function updateProfInfo($id, $salary, $title)
 		// Prevent SQL Injection
         $query = $sqlite->prepare("UPDATE UniversityEmployee SET SALARY=:salary, TITLE=:title WHERE USER_ID=:id");
 		// Set variables to query
+=======
+function updateProfInfo($id, $salary, $title) {
+    $success = false;
+
+    try
+	{
+        $sqlite = new SQLITE($GLOBALS ["databaseFile"]);
+        $sqlite->enableException(true);
+
+        $query = $sqlite->prepare("UPDATE StudentEmployee SET SALARY=:salary TITLE=:title WHERE ID=:id");
+>>>>>>> refs/remotes/origin/master
         $query->bindParam(':id', $id);
         $query->bindParam(':salary', floatval($salary));
         $query->bindParam(':title', $title);
         $query->execute();
+<<<<<<< HEAD
 
 		// Clear up the connection
+=======
+
+>>>>>>> refs/remotes/origin/master
         $sqlite->close();
         $success = true;
-    } 
-    catch(Exception $exception)
-    {
+    }
+	catch(Exception $exception)
+	{
         if ($GLOBALS ["sqliteDebug"])
         {
             return $exception->getMessage();
         }
-		logError($exception);
     }
-	
+
     return $success;
 }
 
@@ -881,15 +860,15 @@ function getPersonalInfo($username)
 		// Set variables to query
 		$query->bindParam(':username', $username);
 		$result = $query->execute();
-		
+
 		if($record = $result->fetchArray(SQLITE3_ASSOC))
 		{
 			$result->finalize();
 			$sqlite->close();
-		
+
 			return $record;
 		}
-		
+
 	}
 	catch(Exception $exception)
 	{
@@ -897,10 +876,10 @@ function getPersonalInfo($username)
 		 {
 			return $exception->getMessage();
 		 }
-		 
+
 		 logError($exception);
 	}
-	
+
 	return $success;
 }
 
@@ -921,12 +900,12 @@ function getProfessionalInfo($id)
 		// Set variables to query
 		$query->bindParam(':id', $id);
 		$result = $query->execute();
-		
+
 		if($record = $result->fetchArray(SQLITE3_ASSOC))
 		{
 			$result->finalize();
 			$sqlite->close();
-		
+
 			return $record;
 		}
 
@@ -972,7 +951,7 @@ function createProf($username, $password, $fname, $lname, $email, $role, $manage
 
 		// for varaible reuse
 		$result->finalize();
-		
+
 		// Prevent SQL Injection
 		$query1 = $sqlite->prepare("INSERT INTO User (USERNAME, PASSWORD, FIRSTNAME, LASTNAME, EMAIL,
 			ROLE) VALUES (:username, :password, :fname, :lname, :email, :role)");
@@ -983,7 +962,7 @@ function createProf($username, $password, $fname, $lname, $email, $role, $manage
 		$query1->bindParam(':lname', $lname);
 		$query1->bindParam(':email', $email);
 		$query1->bindParam(':role', $role);
-        
+
 		$result = $query1->execute();
         // Release variable
         $result->finalize();
@@ -1038,18 +1017,18 @@ function createProf($username, $password, $fname, $lname, $email, $role, $manage
 // Get a list of employees where they are under managerID
 // Input Parameters:
 //  ID
-function getEmployees($id) 
+function getEmployees($id)
 {
-    try 
+    try
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		//prepare query to protect from sql injection
-		$query = $sqlite->prepare("SELECT * FROM UniversityEmployee WHERE MANAGER_ID=:id");	
+		$query = $sqlite->prepare("SELECT * FROM UniversityEmployee WHERE MANAGER_ID=:id");
 		$query->bindParam(":id", $id);
 		$result = $query->execute();
-		
+
 		$record = array();
 		//$sqliteResult = $sqlite->query($queryString);
 		while($emp=$result->fetchArray(SQLITE3_ASSOC))
@@ -1063,7 +1042,7 @@ function getEmployees($id)
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -1073,7 +1052,7 @@ function getEmployees($id)
 }
 
 // Mark a University Employee as terminated
-// Input Parameters: 
+// Input Parameters:
 //  ID
 function terminate($id)
 {
@@ -1094,7 +1073,7 @@ function terminate($id)
 		// Clear up the connection
         $sqlite->close();
         $success = true;
-    } 
+    }
     catch(Exception $exception)
     {
         if ($GLOBALS ["sqliteDebug"])
@@ -1103,10 +1082,9 @@ function terminate($id)
         }
 		logError($exception);
     }
-	
+
     return $success;
 }
-
 
 /////////////////////////
 //Facilities Management//
@@ -1116,24 +1094,130 @@ function terminate($id)
 function facility_management_switch($getFunctions)
 {
 	// Define the possible Facilities Management function URLs which the page can be accessed from
-	$possible_function_url = array("getRoom");
+	$possible_function_url = array("getClassrooms", "addClassroom", "getClassroom", "updateClassroom", "deleteClassroom", "reserveClassroom", "searchClassrooms", "addDevice", "getDevices", "getDevice", "updateDevice", "deleteDevice");
 
 	if ($getFunctions)
 	{
 		return $possible_function_url;
 	}
-	
+
 	if (isset($_GET["function"]) && in_array($_GET["function"], $possible_function_url))
 	{
 		switch ($_GET["function"])
 		{
+<<<<<<< HEAD
 			case "getRoom":
 				if (isset($_GET["roomID"])) {
 					return getRoom($roomID);
 				}
-				else 
+				else
 				{
 					return "Missing roomID parameter";
+=======
+			case "getClassrooms":
+				return getClassrooms();
+			case "addClassroom":
+				if (isset($_POST["building"]) && isset($_POST["room"]) && isset($_POST["capacity"]))
+				{
+					return addClassroom($_POST["building"], $_POST["room"], $_POST["capacity"]);
+				}
+				else
+				{
+					logError("Missing parameters. addClassroom requires: building, room, capacity");
+					return FALSE;
+				}
+			case "getClassroom":
+				if (isset($_GET["id"]))
+				{
+					return getClassroom($_GET["id"]);
+				}
+				else
+				{
+					logError("Missing parameters. getClassroom requires: id");
+					return FALSE;
+				}
+			case "updateClassroom":
+				if (isset($_POST["id"]) && isset($_POST["building"]) && isset($_POST["room"]) && isset($_POST["capacity"]))
+				{
+					return updateClassroom($_POST["id"], $_POST["building"], $_POST["room"], $_POST["capacity"]);
+				}
+				else
+				{
+					logError("Missing parameters. updateClassroom requires: id");
+					return FALSE;
+				}
+			case "deleteClassroom":
+				if (isset($_POST["id"]))
+				{
+					return deleteClassroom($_POST["id"]);
+				}
+				else
+				{
+					logError("Missing parameters. deleteClassroom requires: id");
+					return FALSE;
+				}
+			case "reserveClassroom":
+				if (isset($_POST["id"]) && isset($_POST["day"]) && isset($_POST["section"]) && isset($_POST["timeslot"]) && isset($_POST["length"]))
+				{
+					return reserveClassroom($_POST["id"], $_POST["day"], $_POST["section"], $_POST["timeslot"], $_POST["length"]);
+				}
+				else
+				{
+					logError("Missing parameters. reserveClassroom requires: id, section, day, timeslot");
+					return FALSE;
+				}
+			case "searchClassrooms":
+				if (isset($_GET["size"]) && isset($_GET["semester"]) && isset($_GET["day"]) && isset($_GET["length"]))
+				{
+					return searchClassrooms($_GET["size"], $_GET["semester"], $_GET["day"], $_GET["length"]);
+				}
+				else
+				{
+					logError("Missing parameters. searchClassrooms requires: size, semester, day, length");
+					return FALSE;
+				}
+			case "addDevice":
+				if (isset($_POST["name"]) && isset($_POST["condition"]))
+				{
+					return addDevice($_POST["name"], $_POST["condition"]);
+				}
+				else
+				{
+					logError("Missing parameters. addDevice requires: name, condition");
+					return FALSE;
+				}
+			case "getDevice":
+				if (isset($_GET["id"]))
+				{
+					return getDevice($_GET["id"]);
+				}
+				else
+				{
+					logError("Missing parameters. getDevice requires: id");
+					return FALSE;
+				}
+			case "getDevices":
+				return getDevices();
+			case "updateDevice":
+				if (isset($_POST["id"]) && isset($_POST["condition"]) && isset($_POST["name"]))
+				{
+					return updateDevice($_POST["id"], $_POST["condition"], $_POST["checkoutDate"], $_POST["name"], $_POST["userId"]);
+				}
+				else
+				{
+					logError("Missing parameters. updateDevice requires: id, condition, name, userId,");
+					return FALSE;
+				}
+			case "deleteDevice":
+				if (isset($_POST["uid"]))
+				{
+					return deleteDevice($_POST["uid"]);
+				}
+				else
+				{
+					logError("Missing parameter. deleteDevice requires: uid");
+					return FALSE;
+>>>>>>> refs/remotes/origin/master
 				}
 		}
 	}
@@ -1145,22 +1229,179 @@ function facility_management_switch($getFunctions)
 
 //Define Functions Here
 
+<<<<<<< HEAD
 
 //returns: requested room
 //params: roomID
 function getRoom($roomID)
 {
+=======
+function getClassrooms(){
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+	$query = $sqlite->prepare("SELECT * FROM Classroom");
+	$result = $query->execute();
+
+	$records = array();
+
+	while($row = $result->fetchArray(SQLITE3_ASSOC)) {
+		array_push($records, $row);
+	}
+
+	$result->finalize();
+    $sqlite->close();
+
+	return $records;
+}
+
+function addClassroom($building, $room, $capacity)
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+
+	$query = $sqlite->prepare("INSERT INTO Classroom (BUILDING_ID, ROOM_NUM, CAPACITY) VALUES (:building, :room, :capacity)");
+	$query->bindParam(':building', $building);
+	$query->bindParam(':room', $room);
+	$query->bindParam(':capacity', $capacity);
+
+	$result = $query->execute();
+
+	$result->finalize();
+	$sqlite->close();
+
+	return $result;
+}
+
+function getClassroom($id)
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+
+	$query = $sqlite->prepare("SELECT * FROM Classroom WHERE ID=:id");
+	$query->bindParam(':id', $id);
+	$result = $query->execute();
+
+	if ($record = $result->fetchArray(SQLITE3_ASSOC))
+    {
+        $result->finalize();
+        $sqlite->close();
+        return $record;
+    }
+
+	return $result;
+}
+
+function updateClassroom($id, $capacity, $rmNumber, $bid)
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+
+	$query = $sqlite->prepare("UPDATE Classroom SET CAPACITY = :capacity, ROOM_NUM = :rmNumber, BUILDING_ID = :bid WHERE ID=:id");
+	$query->bindParam(':id', $id);
+	$query->bindParam(':capacity', $capacity);
+	$query->bindParam(':rmNumber', $rmNumber);
+	$query->bindParam(':bid', $bid);
+	$result = $query->execute();
+
+	$result->finalize();
+	$sqlite->close();
+
+	return $result;
+}
+
+function deleteClassroom($id)
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+
+	$query = $sqlite->prepare("DELETE FROM Classroom WHERE ID = :id");
+	$query->bindParam(':id', $id);
+	$result = $query->execute();
+
+	$result->finalize();
+	$sqlite->close();
+
+	return $result;
+}
+
+function reserveClassroom($id, $day, $section, $timeslot, $length)
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+
+	$query = $sqlite->prepare("INSERT INTO Reservation (CLASSROOM_ID, SECTION_ID, DAY_OF_WEEK, TIME_SLOT_START, DURATION) VALUES (:id, :sectionId, :day, :timeslot, :length)");
+	$query->bindParam(':id', $id);
+	$query->bindParam(':sectionId', $section);
+	$query->bindParam(':day', $day);
+	$query->bindParam(':timeslot', $timeslot);
+	$query->bindParam(':length', $length);
+	$result = $query->execute();
+
+	$result->finalize();
+
+	// clean up any objects
+	$sqlite->close();
+
+	return $result;
+}
+
+function getValidClassroomTimes($classrooms, $reservations, $length)
+{
+	$classroomTimes = array();
+	$classroomStartTimes = array();
+
+	foreach ($classrooms as $room) {
+		$roomId = $room["ID"];
+		// Initially all timeslots are available
+		$classroomTimes[$roomId] = range(1, 13);
+		$classroomStartTimes[$roomId] = array();
+	}
+
+	foreach($reservations as $res) {
+		$roomId = $res["RES_CLASSROOM_ID"];
+		$start_time = $res["TIME_SLOT_START"];
+		$duration = $res["DURATION"];
+
+		for($i = $start_time; $i < $start_time + $duration; $i++){
+			$iArray = array($i);
+			$classroomTimes[$roomId] = array_diff($classroomTimes[$roomId], $iArray);
+		}
+	}
+
+	foreach ($classroomTimes as $roomId => $times) {
+		foreach($times as $timeslot){
+			$valid = true;
+
+			for($i = $timeslot + 1; $i <= $timeslot + $length - 1; $i++){
+				if(!in_array($i, $times)){
+					$valid = false;
+				}
+			}
+
+			if($valid){
+				array_push($classroomStartTimes[$roomId], $timeslot);
+			}
+		}
+	}
+
+	return $classroomStartTimes;
+}
+
+function searchClassrooms($capacity, $term, $day, $length)
+{
+>>>>>>> refs/remotes/origin/master
 	try
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+<<<<<<< HEAD
+
 		//prepare query to protect from sql injection
 		$query = $sqlite->prepare("SELECT * FROM Clasroom WHERE ID=:roomID");
 		$query->bindParam(':roomID', $roomID);
 		$result = $query->execute();
-		
-		if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
+
+		if ($record = $result->fetchArray(SQLITE3_ASSOC))
 		{
 			$result->finalize();
 			$sqlite->close();
@@ -1169,12 +1410,135 @@ function getRoom($roomID)
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
+=======
+		$query = $sqlite->prepare("SELECT * FROM Classroom WHERE CAPACITY >= :capacity");
+		$query->bindParam(':capacity', $capacity);
+		$result = $query->execute();
+		$classrooms = array();
+
+		while($row = $result->fetchArray(SQLITE3_ASSOC)) {
+			array_push($classrooms, $row);
+		}
+		$result->finalize();
+
+		$query2 = $sqlite->prepare("SELECT Reservation.CLASSROOM_ID as RES_CLASSROOM_ID, * FROM Reservation INNER JOIN Section WHERE Section.TERM_ID=:term AND Reservation.DAY_OF_WEEK=:day");
+		$query2->bindParam(':term', $term);
+		$query2->bindParam(':day', $day);
+		$result2 = $query2->execute();
+		$reservations = array();
+
+		while($row = $result2->fetchArray(SQLITE3_ASSOC)) {
+			array_push($reservations, $row);
+		}
+
+		$result2->finalize();
+		$sqlite->close();
+
+		return getValidClassroomTimes($classrooms, $reservations, $length);
+	}
+	catch (Exception $exception)
+	{
+		echo $exception;
+		if ($GLOBALS ["sqliteDebug"])
+>>>>>>> refs/remotes/origin/master
 		{
 			return $exception->getMessage();
 		}
 		logError($exception);
 	}
+<<<<<<< HEAD
+=======
+}
+
+
+function addDevice($name, $condition)
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+
+	$query = $sqlite->prepare("INSERT INTO Device (NAME, CONDITION) VALUES (:name, :condition)");
+	$query->bindParam(':name', $name);
+	$query->bindParam(':condition', $condition);
+
+	$result = $query->execute();
+
+	$result->finalize();
+	$sqlite->close();
+
+	return $result;
+>>>>>>> refs/remotes/origin/master
+}
+
+function getDevices()
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+	$query = $sqlite->prepare("SELECT * FROM Device");
+	$result = $query->execute();
+
+	$records = array();
+
+	while($row = $result->fetchArray(SQLITE3_ASSOC)) {
+		array_push($records, $row);
+	}
+
+	$result->finalize();
+    $sqlite->close();
+
+	return $records;
+}
+
+function getDevice($id)
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+
+	$query = $sqlite->prepare("SELECT * FROM Device WHERE ID=:id");
+    	$query->bindParam(':id', $id);
+
+	$result = $query->execute();
+
+    if ($record = $result->fetchArray(SQLITE3_ASSOC))
+    {
+        $result->finalize();
+        $sqlite->close();
+        return $record;
+    }
+}
+
+function updateDevice($id, $condition, $checkoutDate, $name, $userId)
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+
+	$query = $sqlite->prepare("UPDATE Device SET CONDITION = :condition, CHECK_OUT_DATE = :checkoutDate, NAME = :name, USER_ID = :userId WHERE ID = :id");
+	$query->bindParam(':condition', $condition);
+	$query->bindParam(':id', $id);
+	$query->bindParam(':name', $name);
+	$query->bindParam(':userId', $userId);
+	$query->bindParam(':checkoutDate', $checkoutDate);
+	$result = $query->execute();
+
+	$result->finalize();
+	$sqlite->close();
+
+	return $result;
+}
+
+function deleteDevice($uid)
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+
+	$query = $sqlite->prepare("DELETE FROM Device WHERE ID = :uid");
+	$query->bindParam(':uid', $uid);
+	$result = $query->execute();
+
+	$result->finalize();
+	$sqlite->close();
+
+	return $result;
 }
 
 //////////////////////
@@ -1186,16 +1550,15 @@ function student_enrollment_switch($getFunctions)
 {
 	// Define the possible Student Enrollment function URLs which the page can be accessed from
 	$possible_function_url = array("getCourseList", "toggleSection", "getSection", "getCourseSections",
-					"postSection", "toggleCourse", "getStudentSections", "getProfessorSections",
+					"postSection", "deleteSection", "getStudentSections", "getProfessorSections",
 					"getTerms", "getTerm", "postTerm", "enrollStudent",
-					"waitlistStudent", "withdrawStudent", "getSectionEnrolled", "getSectionWaitlist",
-					"getStudentUser");
-				
+					"waitlistStudent", "withdrawStudent", "getSectionEnrolled", "getSectionWaitlist");
+
 	if ($getFunctions)
 	{
 		return $possible_function_url;
 	}
-	
+
 	if (isset($_GET["function"]) && in_array($_GET["function"], $possible_function_url))
 	{
 		switch ($_GET["function"])
@@ -1204,9 +1567,14 @@ function student_enrollment_switch($getFunctions)
 			// params: none
 			case "getCourseList":
 				return getCourseList();
+<<<<<<< HEAD
 			// Calls function that toggles availability of section
 			// returns: "Success" or Error Statement
 			// params: sectionID
+=======
+			// Calls function that toggles availability of course
+			// params: courseID
+>>>>>>> refs/remotes/origin/master
 			case "toggleSection":
 				if (isset($_POST["sectionID"]) && $_POST["sectionID"] != null)
 				{
@@ -1256,7 +1624,8 @@ function student_enrollment_switch($getFunctions)
 				else
 				{
 					return "Missing a parameter";
-				}	
+				}
+<<<<<<< HEAD
 			// Calls function that toggles availability of course
 			// returns: "Success" or Error Statement
 			// params: courseID
@@ -1264,10 +1633,26 @@ function student_enrollment_switch($getFunctions)
 				if (isset($_POST["courseID"]) && $_POST["courseID"] != null)
 				{
 					return toggleCourse($_POST["courseID"]);
+=======
+			// returns: deleted section object
+			// params: maxStudents, professorID, courseID, termID, classroomID
+			case "deleteSection":
+				if ((isset($_POST["maxStudents"]) && $_POST["maxStudents"] != null)
+					&& (isset($_POST["professorID"]) && $_POST["professorID"] != null)
+					&& (isset($_POST["courseID"]) && $_POST["courseID"] != null)
+					&& (isset($_POST["termID"]) && $_POST["termID"] != null)
+					&& (isset($_POST["classroomID"]) && $_POST["classroomID"] != null)
+				){
+					return deleteSection($_POST["maxStudents"],
+							$_POST["professorID"],
+							$_POST["courseID"],
+							$_POST["termID"],
+							$_POST["classroomID"]);
+>>>>>>> refs/remotes/origin/master
 				}
 				else
 				{
-					return "Missing courseID";
+					return "Missing a parameter";
 				}
 			// returns: object array of a student's enrolled and waitlisted sections
 			// params: studentID
@@ -1379,6 +1764,7 @@ function student_enrollment_switch($getFunctions)
 				{
 					return "Missing sectionID parameter";
 				}
+<<<<<<< HEAD
 			// returns: both the user and student data of a Student User
 			// params: userID
 			case "getStudentUser":
@@ -1406,24 +1792,79 @@ function getCourseList()
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		//prepare query to protect from sql injection
-		$query = $sqlite->prepare("SELECT * FROM Course");		
+		$query = $sqlite->prepare("SELECT * FROM Course");
 		$result = $query->execute();
-		
+
 		$record = array();
 		while($arr=$result->fetchArray(SQLITE3_ASSOC))
 		{
 			array_push($record, $arr);
+=======
+
+>>>>>>> refs/remotes/origin/master
 		}
+	}
+	else
+	{
+		return "Function does not exist.";
+	}
+}
+
+//Student Enrollment Functions
+
+function getCourseList()
+{
+	try
+	{
+		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+		$sqlite->enableExceptions(true);
+
+		//prepare query to protect from sql injection
+		$query = $sqlite->prepare("SELECT * FROM Course");
+		$result = $query->execute();
+
+		//$sqliteResult = $sqlite->query($queryString);
+		if ($record = $result->fetchArray(SQLITE3_ASSOC))
+		{
+<<<<<<< HEAD
+			if ($record['AVAILABILITY'] == "0")
+			{
+				//prepare query to protect from sql injection
+				$queryInner = $sqlite->prepare("UPDATE Section SET AVAILABILITY = '1' WHERE ID =:sectionID");
+				$queryInner->bindParam(':sectionID', $sectionID);
+				$resultInner = $queryInner->execute();
+
+				$result = $resultInner;
+			}
+			else
+			{
+				//prepare query to protect from sql injection
+				$queryInner = $sqlite->prepare("UPDATE Section SET AVAILABILITY = '0' WHERE ID =:sectionID");
+				$queryInner->bindParam(':sectionID', $sectionID);
+				$resultInner = $queryInner->execute();
+
+				$result = $resultInner;
+			}
+		}
+
 		$result->finalize();
+
 		// clean up any objects
 		$sqlite->close();
-		return $record;
+		return "Success";
+=======
+			$result->finalize();
+			// clean up any objects
+			$sqlite->close();
+			return $record;
+		}
+>>>>>>> refs/remotes/origin/master
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -1433,79 +1874,28 @@ function getCourseList()
 
 function toggleSection($sectionID)
 {
-	try 
+	try
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		//prepare query to protect from sql injection
 		$query = $sqlite->prepare("SELECT * FROM Section WHERE ID=:sectionID");
-		$query->bindParam(':sectionID', $sectionID);		
+		$query->bindParam(':sectionID', $sectionID);
 		$result = $query->execute();
-		
-		
 
-		if ($record = $result->fetchArray()) 
+
+
+		if ($record = $result->fetchArray())
 		{
 			if ($record['AVAILABILITY'] == "0")
 			{
 				//prepare query to protect from sql injection
-				$queryInner = $sqlite->prepare("UPDATE Section SET AVAILABILITY = '1' WHERE ID =:sectionID");
-				$queryInner->bindParam(':sectionID', $sectionID);		
-				$resultInner = $queryInner->execute();
-				
-				$result = $resultInner;
-			}
-			else
-			{
-				//prepare query to protect from sql injection
-				$queryInner = $sqlite->prepare("UPDATE Section SET AVAILABILITY = '0' WHERE ID =:sectionID");
-				$queryInner->bindParam(':sectionID', $sectionID);		
-				$resultInner = $queryInner->execute();
-				
-				$result = $resultInner;
-			}
-		}
-	
-		$result->finalize();
-		
-		// clean up any objects
-		$sqlite->close();
-		return "Success";
-	}
-	catch (Exception $exception)
-	{
-		if ($GLOBALS ["sqliteDebug"]) 
-		{
-			return $exception->getMessage();
-		}
-		logError($exception);
-	}
-}
-
-function toggleCourse($courseID)
-{
-	try 
-	{
-		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
-		$sqlite->enableExceptions(true);
-		
-		//prepare query to protect from sql injection
-		$query = $sqlite->prepare("SELECT * FROM Course WHERE ID=:courseID");
-		$query->bindParam(':courseID', $courseID);		
-		$result = $query->execute();
-		
-		
-
-		if ($record = $result->fetchArray()) 
-		{
-			if ($record['AVAILABILITY'] == "0")
-			{
-				//prepare query to protect from sql injection
+<<<<<<< HEAD
 				$queryInner = $sqlite->prepare("UPDATE Course SET AVAILABILITY = '1' WHERE ID =:courseID");
-				$queryInner->bindParam(':courseID', $courseID);		
+				$queryInner->bindParam(':courseID', $courseID);
 				$resultInner = $queryInner->execute();
-				
+
 				$result = $resultInner;
 			}
 			else
@@ -1513,45 +1903,57 @@ function toggleCourse($courseID)
 				$resultArray = array();
 				//prepare query to protect from sql injection
 				$queryInner = $sqlite->prepare("UPDATE Course SET AVAILABILITY = '0' WHERE ID =:courseID");
-				$queryInner->bindParam(':courseID', $courseID);		
+				$queryInner->bindParam(':courseID', $courseID);
 				$resultInner = $queryInner->execute();
-				
+
 				array_push($resultArray, $resultInner);
-				
+
 				//prepare query to protect from sql injection
-				$sectionQuery = $sqlite->prepare("SELECT ID FROM Section WHERE COURSE_ID=:courseID");		
+				$sectionQuery = $sqlite->prepare("SELECT ID FROM Section WHERE COURSE_ID=:courseID");
 				$sectionResult = $sectionQuery->execute();
-				
+
 				array_push($resultArray, $sectionResult);
-				
+
 				$sectionRecord = array();
 				while($arr=$sectionResult->fetchArray(SQLITE3_ASSOC))
 				{
 					array_push($sectionRecord, $arr);
 				}
-				
+
 				foreach ($sectionRecord as $sectionID)
 				{
 					//prepare query to protect from sql injection
 					$sectionQueryInner = $sqlite->prepare("UPDATE Section SET AVAILABILITY = '0' WHERE ID =:sectionID");
-					$sectionQueryInner->bindParam(':sectionID', $sectionID);		
+					$sectionQueryInner->bindParam(':sectionID', $sectionID);
 					$sectionResultInner = $sectionQueryInner->execute();
 					array_push($resultArray, $sectionResultInner);
 				}
-				
+
 				$result = $resultArray;
+=======
+				$query_inner = $sqlite->prepare("UPDATE Section SET AVAILABILITY = '1' WHERE ID = sectionID;");
+				$query_inner->bindParam(':sectionID', $sectionID);
+				$result_inner = $query->execute();
+			}
+			else
+			{
+				//prepare query to protect from sql injection
+				$query_inner = $sqlite->prepare("UPDATE Section SET AVAILABILITY = '0' WHERE ID = sectionID;");
+				$query_inner->bindParam(':sectionID', $sectionID);
+				$result_inner = $query->execute();
+>>>>>>> refs/remotes/origin/master
 			}
 		}
-	
+
 		$result->finalize();
-		
+
 		// clean up any objects
 		$sqlite->close();
 		return "Success";
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -1565,13 +1967,13 @@ function getSection($sectionID)
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		//prepare query to protect from sql injection
 		$query = $sqlite->prepare("SELECT * FROM Section WHERE ID=:sectionID");
 		$query->bindParam(':sectionID', $sectionID);
 		$result = $query->execute();
-		
-		if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
+
+		if ($record = $result->fetchArray(SQLITE3_ASSOC))
 		{
 			$result->finalize();
 			// clean up any objects
@@ -1581,7 +1983,7 @@ function getSection($sectionID)
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -1595,26 +1997,29 @@ function getSectionEnrolled($sectionID)
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		//prepare query to protect from sql injection
 		$query = $sqlite->prepare("SELECT STUDENT_ID FROM Student_Section WHERE SECTION_ID=:sectionID");
 		$query->bindParam(':sectionID', $sectionID);
 		$result = $query->execute();
-		
+
+<<<<<<< HEAD
 		$record = array();
-		while($arr=$result->fetchArray(SQLITE3_ASSOC)) 
+		while($arr=$result->fetchArray(SQLITE3_ASSOC))
+=======
+		//$sqliteResult = $sqlite->query($queryString);
+		if ($record = $result->fetchArray(SQLITE3_ASSOC))
+>>>>>>> refs/remotes/origin/master
 		{
-			array_push($record, $arr);
+			$result->finalize();
+			// clean up any objects
+			$sqlite->close();
+			return $record;
 		}
-		
-		$result->finalize();
-		// clean up any objects
-		$sqlite->close();
-		return $record;
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -1628,25 +2033,29 @@ function getSectionWaitlist($sectionID)
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		//prepare query to protect from sql injection
 		$query = $sqlite->prepare("SELECT STUDENT_ID FROM Waitlist WHERE SECTION_ID=:sectionID");
 		$query->bindParam(':sectionID', $sectionID);
 		$result = $query->execute();
-		
+
+<<<<<<< HEAD
 		$record = array();
 		while($arr=$result->fetchArray(SQLITE3_ASSOC))
+=======
+		//$sqliteResult = $sqlite->query($queryString);
+		if ($record = $result->fetchArray(SQLITE3_ASSOC))
+>>>>>>> refs/remotes/origin/master
 		{
-			array_push($record, $arr);
+			$result->finalize();
+			// clean up any objects
+			$sqlite->close();
+			return $record;
 		}
-		$result->finalize();
-		// clean up any objects
-		$sqlite->close();
-		return $record;
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -1660,25 +2069,29 @@ function getCourseSections($courseID)
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		//prepare query to protect from sql injection
 		$query = $sqlite->prepare("SELECT * FROM Section WHERE COURSE_ID=:courseID AND AVAILABILITY=1");
 		$query->bindParam(':courseID', $courseID);
 		$result = $query->execute();
-		
+
+<<<<<<< HEAD
 		$record = array();
 		while($arr=$result->fetchArray(SQLITE3_ASSOC))
+=======
+		//$sqliteResult = $sqlite->query($queryString);
+		if ($record = $result->fetchArray(SQLITE3_ASSOC))
+>>>>>>> refs/remotes/origin/master
 		{
-			array_push($record, $arr);
+			$result->finalize();
+			// clean up any objects
+			$sqlite->close();
+			return $record;
 		}
-		$result->finalize();
-		// clean up any objects
-		$sqlite->close();
-		return $record;
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -1692,7 +2105,7 @@ function postSection($maxStudents, $professorID, $courseID, $termID, $classroomI
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		$query = $sqlite->prepare("INSERT INTO Section (MAX_STUDENTS, PROFESSOR_ID, COURSE_ID, TERM_ID, CLASSROOM_ID) VALUES (:maxStudents, :professorID, :courseID, :termID, :classroomID)");
 		$query->bindParam(':maxStudents', $maxStudents);
 		$query->bindParam(':professorID', $professorID);
@@ -1700,7 +2113,7 @@ function postSection($maxStudents, $professorID, $courseID, $termID, $classroomI
 		$query->bindParam(':termID', $termID);
 		$query->bindParam(':classroomID', $classroomID);
 		$result = $query->execute();
-		
+
 		$result->finalize();
 		// clean up any objects
 		$sqlite->close();
@@ -1708,7 +2121,7 @@ function postSection($maxStudents, $professorID, $courseID, $termID, $classroomI
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -1722,25 +2135,29 @@ function getStudentSections($studentID)
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		//prepare query to protect from sql injection
-		$query = $sqlite->prepare("SELECT SECTION_ID FROM Student_Section WHERE STUDENT_ID=:studentID");
+		$query = $sqlite->prepare("SELECT STUDENT_ID FROM Student_Section WHERE STUDENT_ID=:studentID");
 		$query->bindParam(':studentID', $studentID);
 		$result = $query->execute();
-		
+
+<<<<<<< HEAD
 		$record = array();
 		while($arr=$result->fetchArray(SQLITE3_ASSOC))
+=======
+		//$sqliteResult = $sqlite->query($queryString);
+		if ($record = $result->fetchArray(SQLITE3_ASSOC))
+>>>>>>> refs/remotes/origin/master
 		{
-			array_push($record, $arr);
+			$result->finalize();
+			// clean up any objects
+			$sqlite->close();
+			return $record;
 		}
-		$result->finalize();
-		// clean up any objects
-		$sqlite->close();
-		return $record;
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -1754,25 +2171,29 @@ function getProfessorSections($professorID)
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		//prepare query to protect from sql injection
 		$query = $sqlite->prepare("SELECT * FROM Section WHERE PROFESSOR_ID=:professorID");
 		$query->bindParam(':professorID', $professorID);
 		$result = $query->execute();
-		
+
+<<<<<<< HEAD
 		$record = array();
-		while($arr=$result->fetchArray(SQLITE3_ASSOC)) 
+		while($arr=$result->fetchArray(SQLITE3_ASSOC))
+=======
+		//$sqliteResult = $sqlite->query($queryString);
+		if ($record = $result->fetchArray(SQLITE3_ASSOC))
+>>>>>>> refs/remotes/origin/master
 		{
-			array_push($record, $arr);
+			$result->finalize();
+			// clean up any objects
+			$sqlite->close();
+			return $record;
 		}
-		$result->finalize();
-		// clean up any objects
-		$sqlite->close();
-		return $record;
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -1786,24 +2207,28 @@ function getTerms()
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		//prepare query to protect from sql injection
 		$query = $sqlite->prepare("SELECT * FROM Term");
 		$result = $query->execute();
-		
+
+<<<<<<< HEAD
 		$record = array();
 		while($arr=$result->fetchArray(SQLITE3_ASSOC))
+=======
+		//$sqliteResult = $sqlite->query($queryString);
+		if ($record = $result->fetchArray(SQLITE3_ASSOC))
+>>>>>>> refs/remotes/origin/master
 		{
-			array_push($record, $arr);
+			$result->finalize();
+			// clean up any objects
+			$sqlite->close();
+			return $record;
 		}
-		$result->finalize();
-		// clean up any objects
-		$sqlite->close();
-		return $record;
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -1817,13 +2242,13 @@ function getTerm($termCode)
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		//prepare query to protect from sql injection
 		$query = $sqlite->prepare("SELECT * FROM Term WHERE CODE=:code");
 		$query->bindParam(':code', $termCode);
 		$result = $query->execute();
-		
-		if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
+
+		if ($record = $result->fetchArray(SQLITE3_ASSOC))
 		{
 			$result->finalize();
 			// clean up any objects
@@ -1833,7 +2258,7 @@ function getTerm($termCode)
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -1847,13 +2272,13 @@ function postTerm($termCode, $startDate, $endDate)
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		$query = $sqlite->prepare("INSERT INTO Term (CODE, START_DATE, END_DATE) VALUES (:code, :start_date, :end_date)");
 		$query->bindParam(':code', $termCode);
 		$query->bindParam(':start_date', $startDate);
 		$query->bindParam(':end_date', $endDate);
 		$result = $query->execute();
-		
+
 		$result->finalize();
 		// clean up any objects
 		$sqlite->close();
@@ -1861,7 +2286,7 @@ function postTerm($termCode, $startDate, $endDate)
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -1871,16 +2296,17 @@ function postTerm($termCode, $startDate, $endDate)
 
 function enrollStudent($studentID, $sectionID)
 {
+<<<<<<< HEAD
 	try
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		$query = $sqlite->prepare("INSERT INTO Student_Section (STUDENT_ID, SECTION_ID) VALUES (:studentID, :sectionID)");
 		$query->bindParam(':studentID', $studentID);
 		$query->bindParam(':sectionID', $sectionID);
 		$result = $query->execute();
-		
+
 		$result->finalize();
 		// clean up any objects
 		$sqlite->close();
@@ -1888,29 +2314,33 @@ function enrollStudent($studentID, $sectionID)
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
 		logError($exception);
 	}
+=======
+	return "TODO";
+>>>>>>> refs/remotes/origin/master
 }
 
 function waitlistStudent($studentID, $sectionID)
 {
+<<<<<<< HEAD
 	try
 	{
 		date_default_timezone_set('America/New_York');
 		$addedDate = date('m-d-Y');
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		$query = $sqlite->prepare("INSERT INTO Waitlist (SECTION_ID, STUDENT_ID, ADDED_DATE) VALUES (:sectionID, :studentID, :addedDate)");
 		$query->bindParam(':sectionID', $sectionID);
 		$query->bindParam(':studentID', $studentID);
 		$query->bindParam(':addedDate', $addedDate);
 		$result = $query->execute();
-		
+
 		$result->finalize();
 		// clean up any objects
 		$sqlite->close();
@@ -1918,26 +2348,30 @@ function waitlistStudent($studentID, $sectionID)
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
 		logError($exception);
 	}
+=======
+	return "TODO";
+>>>>>>> refs/remotes/origin/master
 }
 
 function withdrawStudent($studentID, $sectionID)
 {
+<<<<<<< HEAD
 	try
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		$query = $sqlite->prepare("DELETE FROM Student_Section WHERE STUDENT_ID=:studentID AND SECTION_ID=:sectionID");
 		$query->bindParam(':studentID', $studentID);
 		$query->bindParam(':sectionID', $sectionID);
 		$result = $query->execute();
-		
+
 		$result->finalize();
 		// clean up any objects
 		$sqlite->close();
@@ -1945,7 +2379,7 @@ function withdrawStudent($studentID, $sectionID)
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
@@ -1959,13 +2393,13 @@ function getStudentUser($userID)
 	{
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
-		
+
 		//prepare query to protect from sql injection
 		$query = $sqlite->prepare("SELECT User.ID, User.FIRSTNAME, User.LASTNAME, User.EMAIL, Student.YEAR_LEVEL, Student.GPA FROM User JOIN Student ON Student.USER_ID = User.ID WHERE User.ID=:userID");
 		$query->bindParam(':userID', $userID);
 		$result = $query->execute();
-		
-		if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
+
+		if ($record = $result->fetchArray(SQLITE3_ASSOC))
 		{
 			$result->finalize();
 			// clean up any objects
@@ -1975,12 +2409,15 @@ function getStudentUser($userID)
 	}
 	catch (Exception $exception)
 	{
-		if ($GLOBALS ["sqliteDebug"]) 
+		if ($GLOBALS ["sqliteDebug"])
 		{
 			return $exception->getMessage();
 		}
 		logError($exception);
 	}
+=======
+	return "TODO";
+>>>>>>> refs/remotes/origin/master
 }
 
 
@@ -2003,7 +2440,7 @@ function coop_eval_switch($getFunctions)
 	{
 		return $possible_function_url;
 	}
-	
+
 	if (isset($_GET["function"]) && in_array($_GET["function"], $possible_function_url))
 	{
 		switch ($_GET["function"])
@@ -2032,10 +2469,10 @@ function coop_eval_switch($getFunctions)
 						'q2'=>$_POST['q2'],
 						'q3'=>$_POST['q3'],
 						'q4'=>$_POST['q4'],
-						'q5'=>$_POST['q5']			
+						'q5'=>$_POST['q5']
 					));
 				}
-				else 
+				else
 				{
 					return NULL;
 				}
@@ -2056,7 +2493,7 @@ function coop_eval_switch($getFunctions)
 						'q5'=>$_POST['q5']
 					));
 				}
-				else 
+				else
 				{
 					return NULL;
 				}
@@ -2074,21 +2511,21 @@ function coop_eval_switch($getFunctions)
 				{
 					return addCompany($_POST['StudentID'], $_POST['name'], $_POST['address']);
 				}
-				else 
+				else
 				{
 					return NULL;
 				}
-				
+
 			case "updateCompany":
 				if (isset($_POST['StudentID']) && isset($_POST['name']))
 				{
 					return updateCompany($_POST['StudentID'], $_POST['name'], $_POST['address']);
 				}
-				else 
+				else
 				{
 					return NULL;
 				}
-				
+
 			case "getEmployers":
 				if (isset($_GET['CompanyID']))
 				{
@@ -2102,7 +2539,7 @@ function coop_eval_switch($getFunctions)
 				if (isset($_POST['CompanyID']) && isset($_POST['ID']))
 				{
 					return updateEmployer(
-					$_POST['ID'], 
+					$_POST['ID'],
 					$_POST['CompanyID'],
 					$_POST['fname'],
 					$_POST['lname'],
@@ -2118,9 +2555,9 @@ function coop_eval_switch($getFunctions)
 				if (isset($_POST['CompanyID']))
 				{
 					return addEmployer(
-						$_POST['CompanyID'], 
-						$_POST['fname'], 
-						$_POST['lname'], 
+						$_POST['CompanyID'],
+						$_POST['fname'],
+						$_POST['lname'],
 						$_POST['email']
 					);
 				}
@@ -2153,10 +2590,10 @@ function coop_eval_switch($getFunctions)
 						'q2'=>$_POST['q2'],
 						'q3'=>$_POST['q3'],
 						'q4'=>$_POST['q4'],
-						'q5'=>$_POST['q5']			
+						'q5'=>$_POST['q5']
 					));
 				}
-				else 
+				else
 				{
 					return NULL;
 				}
@@ -2175,10 +2612,10 @@ function coop_eval_switch($getFunctions)
 						'q2'=>$_POST['q2'],
 						'q3'=>$_POST['q3'],
 						'q4'=>$_POST['q4'],
-						'q5'=>$_POST['q5']			
+						'q5'=>$_POST['q5']
 					));
 				}
-				else 
+				else
 				{
 					return NULL;
 				}
@@ -2263,7 +2700,7 @@ function addEmployerEvaluation($array_params)
 	return "TODO";
 }
 
-/* 
+/*
 Currently these are not used
 function getCoopAdvisor()
 {
@@ -2285,28 +2722,22 @@ function getCoopInfo()
 function grading_switch($getFunctions)
 {
 	// Define the possible Grading function URLs which the page can be accessed from
-	$possible_function_url = array(
-		"getGradeForStudentSection"
-		);
+	$possible_function_url = array("getStudentGrades");
 
 	if ($getFunctions)
 	{
 		return $possible_function_url;
 	}
-	
+
 	if (isset($_GET["function"]) && in_array($_GET["function"], $possible_function_url))
 	{
 		switch ($_GET["function"])
 		{
-			case "getGradeForStudentSection":
-				if (isset($_GET["student_section_id"]))
-				{
-					return getGradeForStudentSection($_GET["student_section_id"]);
-				}
-				else
-				{
-					return "Missing required query param: 'student_section_id'";
-				}
+			case "getStudentGrades":
+				// if has params
+				return getStudentGrades();
+				// else
+				// return "Missing " . $_GET["param-name"]
 		}
 	}
 	else
@@ -2315,39 +2746,11 @@ function grading_switch($getFunctions)
 	}
 }
 
-/**
- *	Retrives the row from the Grade table matching the student_section_id
- *	@param $studentSectionID - the ID matching the studentsection
- */
-function getGradeForStudentSection($studentSectionID)
+//Define Functions Here
+
+function getStudentGrades()
 {
-	try
-	{
-		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
-		$sqlite->enableExceptions(true);
-		
-		//prepare query to protect from sql injection
-		$query = $sqlite->prepare("SELECT * FROM Grade WHERE STUDENT_SECTION_ID=:studentSectionID");
-		$query->bindParam(':studentSectionID', $studentSectionID);
-		$result = $query->execute();
-		
-		//$sqliteResult = $sqlite->query($queryString);
-		if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
-		{
-			$result->finalize();
-			// clean up any objects
-			$sqlite->close();
-			return $record;
-		}
-	}
-	catch (Exception $exception)
-	{
-		if ($GLOBALS ["sqliteDebug"]) 
-		{
-			return $exception->getMessage();
-		}
-		logError($exception);
-	}
+	return "TODO";
 }
 
 /////////////////////
@@ -2401,8 +2804,7 @@ if (isset($_GET["getAllFunctions"]))
 	);
 }
 
-//return JSON
-header('Content-type:application/json;charset=utf-8');
-echo json_encode($result);
+//return JSON array
+exit(json_encode($result));
 
 ?>
