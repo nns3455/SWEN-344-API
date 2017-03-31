@@ -1272,9 +1272,10 @@ function addClassroom($building, $room, $capacity)
 	$result = $query->execute();
 	
 	$result->finalize();
+	$last_insert = $sqlite->lastInsertRowID();
 	$sqlite->close();
 	
-	return $result;
+	return $last_insert;
 }
 
 function getClassroom($id)
@@ -1445,11 +1446,11 @@ function addDevice($name, $condition)
 	$query->bindParam(':condition', $condition);
 
 	$result = $query->execute();
-	
 	$result->finalize();
+	$last_insert = $sqlite->lastInsertRowID();
 	$sqlite->close();
 	
-	return $result;
+	return $last_insert;
 }
 
 function getDevices()
