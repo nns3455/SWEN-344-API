@@ -1,5 +1,5 @@
 <?php
-require("Bookstore.php");
+//require("Bookstore.php");
 
 // initial result of the api
 $result = "An error has occurred";
@@ -742,13 +742,13 @@ function facility_management_switch($getFunctions)
 					return FALSE;
 				}
 			case "reserveClassroom":
-				if (isset($_POST["building"]) && isset($_POST["room"]) && isset($_POST["day"]) && isset($_POST["semester"]) && isset($_POST["timeslot"]) && isset($_POST["length"]) && isset($_POST["class"])) 
+				if (isset($_POST["id"]) && isset($_POST["day"]) && isset($_POST["section"]) && isset($_POST["timeslot"]) && isset($_POST["length"])) 
 				{
-					return reserveClassroom($_POST["building"], $_POST["room"], $_POST["day"], $_POST["semester"], $_POST["timeslot"], $_POST["length"], $_POST["class"]);
+					return reserveClassroom($_POST["id"], $_POST["day"], $_POST["section"], $_POST["timeslot"], $_POST["length"]);
 				}
 				else 
 				{
-					logError("Missing parameters. reserveClassroom requires: building, room, day, semester, timeslot, class");
+					logError("Missing parameters. reserveClassroom requires: id, section, day, timeslot");
 					return FALSE;
 				}
 			case "searchClassrooms":
@@ -801,7 +801,6 @@ function facility_management_switch($getFunctions)
 				else 
 				{
 					logError("Missing parameter. deleteDevice requires: uid");
-					echo "missing param";
 					return FALSE;
 				}
 		}
@@ -902,19 +901,17 @@ function deleteClassroom($id)
 	return $result;
 }
 
-function reserveClassroom($building, $room, $day, $semester, $timeslot, $length, $section)
+function reserveClassroom($id, $day, $section, $timeslot, $length)
 {
 	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 	$sqlite->enableExceptions(true);
-	
-	$query = $sqlite->prepare("INSERT INTO Reservation (BUILDING, ROOM, DAY_OF_WEEK, SEMESTER_ID, TIME_SLOT_START, DURATION, SECTION_ID) VALUES (:building, :room, :day, :semester, :timeslot, :length, :class)");
-	$query->bindParam(':building', $building);
-	$query->bindParam(':room', $room);
+
+	$query = $sqlite->prepare("INSERT INTO Reservation (CLASSROOM_ID, SECTION_ID, DAY_OF_WEEK, TIME_SLOT_START, DURATION) VALUES (:id, :sectionId, :day, :timeslot, :length)");
+	$query->bindParam(':id', $id);
+	$query->bindParam(':sectionId', $section);
 	$query->bindParam(':day', $day);
-	$query->bindParam(':semester', $semester);
 	$query->bindParam(':timeslot', $timeslot);
 	$query->bindParam(':length', $length);
-	$query->bindParam(':class', $class);
 	$result = $query->execute();
 	
 	$result->finalize();
@@ -925,22 +922,90 @@ function reserveClassroom($building, $room, $day, $semester, $timeslot, $length,
 	return $result;
 }
 
-function searchClassrooms($size, $semester, $day, $length)
+function getValidClassroomTimes($classrooms, $reservations, $length)
 {
-	// TODO: actually make it search
-	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
-	$sqlite->enableExceptions(true);
+	$classroomTimes = array();
+	$classroomStartTimes = array();
 	
-	$query = $sqlite->prepare("SELECT * FROM Classroom");	
-	$result = $query->execute();
+	foreach ($classrooms as $room) {
+		$roomId = $room["ID"];
+		// Initially all timeslots are available
+		$classroomTimes[$roomId] = range(1, 13);
+		$classroomStartTimes[$roomId] = array();
+	}
 	
-	$result->finalize();
-	
-	// clean up any objects
-	$sqlite->close();
-	
-	return $result;
+	foreach($reservations as $res) {
+		$roomId = $res["RES_CLASSROOM_ID"];
+		$start_time = $res["TIME_SLOT_START"];
+		$duration = $res["DURATION"];
+
+		for($i = $start_time; $i < $start_time + $duration; $i++){
+			$iArray = array($i);
+			$classroomTimes[$roomId] = array_diff($classroomTimes[$roomId], $iArray);
+		}
+	}
+
+	foreach ($classroomTimes as $roomId => $times) {
+		foreach($times as $timeslot){
+			$valid = true;
+			
+			for($i = $timeslot + 1; $i <= $timeslot + $length - 1; $i++){
+				if(!in_array($i, $times)){
+					$valid = false;
+				}
+			}
+
+			if($valid){
+				array_push($classroomStartTimes[$roomId], $timeslot);
+			}
+		}
+	}
+
+	return $classroomStartTimes; 
 }
+
+function searchClassrooms($capacity, $term, $day, $length)
+{
+	try
+	{
+		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+		$sqlite->enableExceptions(true);
+		$query = $sqlite->prepare("SELECT * FROM Classroom WHERE CAPACITY >= :capacity");
+		$query->bindParam(':capacity', $capacity);
+		$result = $query->execute();
+		$classrooms = array();
+
+		while($row = $result->fetchArray(SQLITE3_ASSOC)) {	
+			array_push($classrooms, $row);
+		}
+		$result->finalize();
+		
+		$query2 = $sqlite->prepare("SELECT Reservation.CLASSROOM_ID as RES_CLASSROOM_ID, * FROM Reservation INNER JOIN Section WHERE Section.TERM_ID=:term AND Reservation.DAY_OF_WEEK=:day");
+		$query2->bindParam(':term', $term);
+		$query2->bindParam(':day', $day);
+		$result2 = $query2->execute();
+		$reservations = array();
+		
+		while($row = $result2->fetchArray(SQLITE3_ASSOC)) {	
+			array_push($reservations, $row);
+		}
+
+		$result2->finalize();
+		$sqlite->close();
+
+		return getValidClassroomTimes($classrooms, $reservations, $length);
+	}
+	catch (Exception $exception)
+	{
+		echo $exception;
+		if ($GLOBALS ["sqliteDebug"])
+		{
+			return $exception->getMessage();
+		}
+		logError($exception);
+	}
+}
+
 
 function addDevice($name, $condition)
 {
