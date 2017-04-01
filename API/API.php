@@ -7,7 +7,8 @@ $result = "An error has occurred";
 // needed globals
 $errorLogFile = "errors.txt";
 
-$databaseFile = getcwd(). "/../Database/SWEN344DB.db";
+// $databaseFile = getcwd(). "/../Database/SWEN344DB.db";
+$databaseFile = dirname(__DIR__) . "/Database/SWEN344DB.db";
 
 // debug switch
 $sqliteDebug = true; //SET TO FALSE BEFORE OFFICIAL RELEASE
@@ -1115,128 +1116,77 @@ function terminate($id)
 // Switchboard to Facilities Management Functions
 function facility_management_switch($getFunctions)
 {
-	// Define the possible Facilities Management function URLs which the page can be accessed from
-	$possible_function_url = array("getClassrooms", "addClassroom", "getClassroom", "updateClassroom", "deleteClassroom", "reserveClassroom", "searchClassrooms", "addDevice", "getDevices", "getDevice", "updateDevice", "deleteDevice");
+	return validateFacManParameters($_GET["function"]);
+}
 
-	if ($getFunctions)
-	{
-		return $possible_function_url;
-	}
-	
-	if (isset($_GET["function"]) && in_array($_GET["function"], $possible_function_url))
-	{
-		switch ($_GET["function"])
-		{
-			case "getClassrooms":
-				return getClassrooms();
-			case "addClassroom":
-				if (isset($_POST["building"]) && isset($_POST["room"]) && isset($_POST["capacity"])) 
-				{
-					return addClassroom($_POST["building"], $_POST["room"], $_POST["capacity"]);
-				}
-				else 
-				{
-					logError("Missing parameters. addClassroom requires: building, room, capacity");
-					return FALSE;
-				}
-			case "getClassroom":
-				if (isset($_GET["id"])) 
-				{
-					return getClassroom($_GET["id"]);
-				}
-				else 
-				{
-					logError("Missing parameters. getClassroom requires: id");
-					return FALSE;
-				}
-			case "updateClassroom":
-				if (isset($_POST["id"]) && isset($_POST["building"]) && isset($_POST["room"]) && isset($_POST["capacity"])) 
-				{
-					return updateClassroom($_POST["id"], $_POST["building"], $_POST["room"], $_POST["capacity"]);
-				}
-				else 
-				{
-					logError("Missing parameters. updateClassroom requires: id");
-					return FALSE;
-				}
-			case "deleteClassroom":
-				if (isset($_POST["id"])) 
-				{
-					return deleteClassroom($_POST["id"]);
-				}
-				else 
-				{
-					logError("Missing parameters. deleteClassroom requires: id");
-					return FALSE;
-				}
-			case "reserveClassroom":
-				if (isset($_POST["id"]) && isset($_POST["day"]) && isset($_POST["section"]) && isset($_POST["timeslot"]) && isset($_POST["length"])) 
-				{
-					return reserveClassroom($_POST["id"], $_POST["day"], $_POST["section"], $_POST["timeslot"], $_POST["length"]);
-				}
-				else 
-				{
-					logError("Missing parameters. reserveClassroom requires: id, section, day, timeslot");
-					return FALSE;
-				}
-			case "searchClassrooms":
-				if (isset($_GET["size"]) && isset($_GET["semester"]) && isset($_GET["day"]) && isset($_GET["length"])) 
-				{
-					return searchClassrooms($_GET["size"], $_GET["semester"], $_GET["day"], $_GET["length"]);
-				}
-				else 
-				{
-					logError("Missing parameters. searchClassrooms requires: size, semester, day, length");
-					return FALSE;
-				}
-			case "addDevice":
-				if (isset($_POST["name"]) && isset($_POST["condition"])) 
-				{
-					return addDevice($_POST["name"], $_POST["condition"]);
-				}
-				else 
-				{
-					logError("Missing parameters. addDevice requires: name, condition");
-					return FALSE;
-				}
-			case "getDevice":
-				if (isset($_GET["id"])) 
-				{
-					return getDevice($_GET["id"]);
-				}
-				else 
-				{
-					logError("Missing parameters. getDevice requires: id");
-					return FALSE;
-				}
-			case "getDevices":
-				return getDevices();
-			case "updateDevice":
-				if (isset($_POST["id"]) && isset($_POST["condition"]) && isset($_POST["name"])) 
-				{
-					return updateDevice($_POST["id"], $_POST["condition"], $_POST["checkoutDate"], $_POST["name"], $_POST["userId"]);
-				}
-				else 
-				{
-					logError("Missing parameters. updateDevice requires: id, condition, name, userId,");
-					return FALSE;
-				}
-			case "deleteDevice":
-				if (isset($_POST["uid"])) 
-				{
-					return deleteDevice($_POST["uid"]);
-				}
-				else 
-				{
-					logError("Missing parameter. deleteDevice requires: uid");
-					return FALSE;
-				}
-		}
-	}
-	else
-	{
+//Searches for a key within arrays of any dimension size
+function in_multi_array($keySearch, $array){
+    foreach ($array as $key => $item) {
+        if ($key == $keySearch) {
+            return true;
+        }
+        else {
+            if (is_array($item) && in_multi_array($item, $keySearch)) {
+               return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+function validateFacManParameters($function){
+	//Master list of all accepted POST functions, and each function's required parameters
+	$postFunctions = array(
+		"addClassroom" => array("building", "room", "capacity"),
+		"updateClassroom" => array("id", "building", "room", "capacity"),
+		"deleteClassroom" => array("id"),
+		"reserveClassroom" => array("id", "day", "section", "timeslot", "length"),
+		"addDevice" => array("name", "condition"),
+		"updateDevice" => array("id", "condition", "name"),
+		"deleteDevice" => array("id")
+	);
+
+	//Master list of all accepted GET functions, and each function's required parameters
+	$getFunctions = array(
+		"getClassroom" => array("id"),
+		"getClassrooms" => array(),
+		"getDevice" => array("id"),
+		"getDevices" => array(),
+		"searchClassrooms" => array("day", "semester", "size", "length"),
+	);
+
+	//Check that the function passed in is valid
+	if(!in_multi_array($function, $postFunctions) && !in_multi_array($function, $getFunctions)){
 		return "Function does not exist.";
 	}
+
+	$valid = true;
+
+	//Check that all needed POST parameters are valid
+	if($postFunctions[$function]){
+		foreach($postFunctions[$function] as $fun){
+			$valid = (isset($_POST[$fun]) && !empty($_POST[$fun])) && $valid;
+			
+			if(!$valid){
+				return "Missing parameters. Required parameters: " . implode(', ', $postFunctions[$function]);
+			}
+		}
+	} 
+
+	//Check that all needed GET parameters are valid
+	if($getFunctions[$function]){
+		foreach($getFunctions[$function] as $fun){
+			$valid = isset($_GET[$fun]) && !empty($_GET[$fun]) && $valid;
+			
+			if(!$valid){
+				return "Missing parameters. Required parameters: " . implode(', ', $getFunctions[$function]);
+			}
+		}
+	}
+
+	//All needed paramters are present, so return true
+	return $valid;
 }
 
 //Define Functions Here
@@ -1272,10 +1222,9 @@ function addClassroom($building, $room, $capacity)
 	$result = $query->execute();
 	
 	$result->finalize();
-	$last_insert = $sqlite->lastInsertRowID();
 	$sqlite->close();
 	
-	return $last_insert;
+	return $result;
 }
 
 function getClassroom($id)
@@ -1334,21 +1283,57 @@ function reserveClassroom($id, $day, $section, $timeslot, $length)
 {
 	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 	$sqlite->enableExceptions(true);
-
-	$query = $sqlite->prepare("INSERT INTO Reservation (CLASSROOM_ID, SECTION_ID, DAY_OF_WEEK, TIME_SLOT_START, DURATION) VALUES (:id, :sectionId, :day, :timeslot, :length)");
+	$query = $sqlite->prepare("SELECT * FROM Classroom WHERE ID = :id");
 	$query->bindParam(':id', $id);
-	$query->bindParam(':sectionId', $section);
-	$query->bindParam(':day', $day);
-	$query->bindParam(':timeslot', $timeslot);
-	$query->bindParam(':length', $length);
 	$result = $query->execute();
-	
+
+	$classrooms = array();
+
+	while($row = $result->fetchArray(SQLITE3_ASSOC)) {	
+		array_push($classrooms, $row);
+	}
+
 	$result->finalize();
+
+	$termQuery = $sqlite->prepare("SELECT TERM_ID FROM Section WHERE ID = :id");
+	$termQuery->bindParam(':id', $section);
+	$termResult = $termQuery->execute();
 	
-	// clean up any objects
+	$term = $termResult->fetchArray(SQLITE3_ASSOC);
+
+	$term = $term["TERM_ID"];
+	$termResult->finalize();
+
+	$query2 = $sqlite->prepare("SELECT Reservation.CLASSROOM_ID as RES_CLASSROOM_ID, * FROM Reservation INNER JOIN Section WHERE Section.TERM_ID=:term AND Reservation.DAY_OF_WEEK=:day AND Reservation.CLASSROOM_ID = :id");
+	$query2->bindParam(':term', $term);
+	$query2->bindParam(':day', $day);
+	$query2->bindParam(':id', $id);
+	$result2 = $query2->execute();
+	
+	$reservations = array();
+	while($row = $result2->fetchArray(SQLITE3_ASSOC)) {	
+		array_push($reservations, $row);
+	}
+
+	$validTimes = getValidClassroomTimes($classrooms, $reservations, $length);
+
+	if(!in_array($timeslot, $validTimes[$id])){
+		return "Not a valid reservation timeslot";
+	}
+
+	$query3 = $sqlite->prepare("INSERT INTO Reservation (CLASSROOM_ID, SECTION_ID, DAY_OF_WEEK, TIME_SLOT_START, DURATION) VALUES (:id, :sectionId, :day, :timeslot, :length)");
+	$query3->bindParam(':id', $id);
+	$query3->bindParam(':sectionId', $section);
+	$query3->bindParam(':day', $day);
+	$query3->bindParam(':timeslot', $timeslot);
+	$query3->bindParam(':length', $length);
+
+	$result3 = $query->execute();
+	
+	$result3->finalize();
 	$sqlite->close();
 	
-	return $result;
+	return $result3;
 }
 
 function getValidClassroomTimes($classrooms, $reservations, $length)
@@ -1446,11 +1431,11 @@ function addDevice($name, $condition)
 	$query->bindParam(':condition', $condition);
 
 	$result = $query->execute();
+
 	$result->finalize();
-	$last_insert = $sqlite->lastInsertRowID();
 	$sqlite->close();
-	
-	return $last_insert;
+
+	return $result;
 }
 
 function getDevices()
@@ -1502,20 +1487,21 @@ function updateDevice($id, $condition, $checkoutDate, $name, $userId)
 	$query->bindParam(':userId', $userId);
 	$query->bindParam(':checkoutDate', $checkoutDate);
 	$result = $query->execute();
-	
+
 	$result->finalize();
 	$sqlite->close();
-	
+
 	return $result;
+	
 }
 
-function deleteDevice($uid)
+function deleteDevice($id)
 {
 	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 	$sqlite->enableExceptions(true);
 	
-	$query = $sqlite->prepare("DELETE FROM Device WHERE ID = :uid");
-	$query->bindParam(':uid', $uid);
+	$query = $sqlite->prepare("DELETE FROM Device WHERE ID = :id");
+	$query->bindParam(':id', $id);
 	$result = $query->execute();
 	
 	$result->finalize();
