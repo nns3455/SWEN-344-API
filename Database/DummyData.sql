@@ -1,5 +1,5 @@
-/* This script is intended only for testing purposes and will insert a bunch of dummy data into 
-the tables. For usersnames and passwords see the inserts below 
+/* This script is intended only for testing purposes and will insert a bunch of dummy data into
+the tables. For usersnames and passwords see the inserts below
 The password used for each user is 'password' with no quotes, encrypted using password_hash()
 */
 
@@ -29,7 +29,7 @@ DELETE FROM Classroom;
 DELETE FROM UniversityEmployee;
 DELETE FROM Grade;
 
-/* 
+/*
 User data
 */
 
@@ -119,6 +119,10 @@ INSERT INTO Classroom (CAPACITY, ROOM_NUM, BUILDING_ID) VALUES (20, 2010, 70);
 INSERT INTO Classroom (CAPACITY, ROOM_NUM, BUILDING_ID) VALUES (100, 1010, 20);
 INSERT INTO Classroom (CAPACITY, ROOM_NUM, BUILDING_ID) VALUES (10, 3050, 70);
 
+INSERT INTO Device (ID, NAME, CONDITION) VALUES (1, "HAL9000", "Destroyed");
+INSERT INTO Device (ID, NAME, CONDITION) VALUES (2, "ENIAC", "Chipper");
+INSERT INTO Device (ID, NAME, CONDITION) VALUES (3, "iPhone7", "Immaculate");
+
 /*
 HR Data
 */
@@ -132,4 +136,3 @@ Grading Data
 */
 INSERT INTO Grade (VALUE, IS_LOCKED, LAST_MODIFIED, STUDENT_SECTION_ID) VALUES (90, 0, "2017-03-28 15:30:00.000", 1);
 INSERT INTO Grade (VALUE, IS_LOCKED, LAST_MODIFIED, STUDENT_SECTION_ID) VALUES (75, 0, "2017-03-28 15:30:00.000", 2);
-
