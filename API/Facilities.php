@@ -164,9 +164,10 @@ function addClassroom($building, $room, $capacity)
 	$result = $query->execute();
 	
 	$result->finalize();
+    $last_insert = $sqlite->lastInsertRowID();
 	$sqlite->close();
 	
-	return $result;
+	return $last_insert;
 }
 
 function getClassroom($id)
@@ -200,10 +201,19 @@ function updateClassroom($id, $capacity, $rmNumber, $bid)
 	$query->bindParam(':bid', $bid);		
 	$result = $query->execute();
 	
+    if(!$result)
+	{
+	  $record = $sqlite->lastErrorMsg();
+	} 
+	else 
+	{
+	  $record = $sqlite->changes() . " record was updated.";
+	}
+    
 	$result->finalize();
 	$sqlite->close();
 	
-	return $result;
+	return $record;
 }
 
 function deleteClassroom($id)
@@ -339,9 +349,10 @@ function addDevice($name, $condition)
 	$result = $query->execute();
 	
 	$result->finalize();
+    $last_insert = $sqlite->lastInsertRowID();
 	$sqlite->close();
 	
-	return $result;
+	return $last_insert;
 }
 
 function getDevices()
