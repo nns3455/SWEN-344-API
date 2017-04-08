@@ -104,6 +104,7 @@ function facility_management_switch($getFunctions)
 			case "getDevices":
 				return getDevices();
 			case "updateDevice":
+				if (isset($_POST["id"]) && isset($_POST["condition"]) && isset($_POST["checkoutDate"]) && isset($_POST["name"]) && isset($_POST["userId"]))
 				{
 					return updateDevice($_POST["id"], $_POST["condition"], $_POST["checkoutDate"], $_POST["name"], $_POST["userId"]);
 				}
