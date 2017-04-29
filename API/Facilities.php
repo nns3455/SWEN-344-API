@@ -44,7 +44,7 @@ function facility_management_switch($getFunctions)
 			case "updateClassroom":
 				if (isset($_POST["id"]) && isset($_POST["building"]) && isset($_POST["room"]) && isset($_POST["capacity"]))
 				{
-					return updateClassroom($_POST["id"], $_POST["building"], $_POST["room"], $_POST["capacity"]);
+					return updateClassroom($_POST["id"], $_POST["capacity"], $_POST["room"], $_POST["building"]);
 				}
 				else
 				{
