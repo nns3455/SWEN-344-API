@@ -12,7 +12,8 @@ function student_enrollment_switch($getFunctions)
 					"postSection", "toggleCourse", "getStudentSections", "getProfessorSections",
 					"getTerms", "getTerm", "postTerm", "enrollStudent", "getPreReqs",
 					"waitlistStudent", "withdrawStudent", "getSectionEnrolled", "getSectionWaitlist",
-					"getStudentUser");
+					"getStudentUser", "getProfessorUser", "getSectionProfessor", "updateCourse",
+					"updateSection", "getStudentWaitlist", "enrollFromWaitlist", "withdrawFromWaitlist");
 				
 	if ($getFunctions)
 	{
@@ -224,13 +225,111 @@ function student_enrollment_switch($getFunctions)
 				{
 					return "Missing courseID parameter";
 				}
+			// params: userID
+			// return: User object
+			case "getProfessorUser":
+				if (isset($_GET["userID"]) && $_GET["userID"] != null)
+				{
+					return getProfessorUser($_GET["userID"]);
+				}
+				else 
+				{
+					return "Missing userID parameter";
+				}
+			// params: sectionID
+			// returns: the professor of a section
+			case "getSectionProfessor":
+			if (isset($_GET["sectionID"]) && $_GET["sectionID"] != null)
+			{
+
+				return getSectionProfessor($_GET["sectionID"]);
+			}
+			else
+			{
+				return "Missing sectionID parameter";
+			}
+			// returns: "Success" or Error Statement
+			// params: id, courseCode, courseName, credits, minGPA
+			case "updateCourse":
+				if ((isset($_POST["courseCode"]) && $_POST["courseCode"] != null)
+					&& (isset($_POST["courseName"]) && $_POST["courseName"] != null)
+					&& (isset($_POST["credits"]) && $_POST["credits"] != null)
+					&& (isset($_POST["minGPA"]) && $_POST["minGPA"] != null)
+					&& (isset($_POST["id"]) && $_POST["id"] != null)
+				){
+					return updateCourse($_POST["id"],
+						$_POST["courseCode"],
+						$_POST["courseName"],
+						$_POST["credits"],
+						$_POST["minGPA"]
+						);
+				}
+				else {
+					return "Missing parameter(s)";
+				}
+			// returns: "Success" or Error Statement
+			// params: id, maxStudents, professorID, courseID, termID, classroomID
+			case "updateSection":
+				if ((isset($_POST["maxStudents"]) && $_POST["maxStudents"] != null)
+					&& (isset($_POST["professorID"]) && $_POST["professorID"] != null)
+					&& (isset($_POST["courseID"]) && $_POST["courseID"] != null)
+					&& (isset($_POST["termID"]) && $_POST["termID"] != null)
+					&& (isset($_POST["classroomID"]) && $_POST["classroomID"] != null)
+					&& (isset($_POST["id"]) && $_POST["id"] != null)
+				){
+					return updateSection($_POST["id"],
+							$_POST["maxStudents"],
+							$_POST["professorID"],
+							$_POST["courseID"],
+							$_POST["termID"],
+							$_POST["classroomID"]);
+				}
+				else
+				{
+					return "Missing a parameter";
+				}
+			// returns: sections that a student is waitlisted on
+			// params: studentID
+			case "getStudentWaitlist":
+				if (isset($_GET["studentID"]) && $_GET["studentID"] != null)
+				{
+					return getStudentWaitlist($_GET["studentID"]);
+				}
+				else
+				{
+					return "Missing studentID parameter";
+				}
+			// returns: "Success" or Error Statement
+			// params: sectionID
+			case "enrollFromWaitlist":
+				if (isset($_POST["sectionID"]) && $_POST["sectionID"] != null)
+				{
+					return enrollFromWaitlist($_POST["sectionID"]);
+				}
+				else
+				{
+					return "Missing sectionID parameter";
+				}
+			// returns: "Success" or Error Statement
+			// params: studentID, sectionID
+			case "withdrawFromWaitlist":
+				if ((isset($_POST["studentID"]) && $_POST["studentID"] != null)
+					&& (isset($_POST["sectionID"]) && $_POST["sectionID"] != null)
+				){
+					return withdrawFromWaitlist($_POST["studentID"], $_POST["sectionID"]);
+				}
+				else
+				{
+					return "Missing a parameter";
+				}
 		}
-	}
-	else
-	{
-		return "Function does not exist.";
+	} 
+	else {
+		return "Function does not exist";
+
 	}
 }
+
 
 //Student Enrollment Functions
 
@@ -686,15 +785,38 @@ function enrollStudent($studentID, $sectionID)
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
 		
-		$query = $sqlite->prepare("INSERT INTO Student_Section (STUDENT_ID, SECTION_ID) VALUES (:studentID, :sectionID)");
-		$query->bindParam(':studentID', $studentID);
-		$query->bindParam(':sectionID', $sectionID);
-		$result = $query->execute();
+		$queryCount = $sqlite->prepare("SELECT STUDENT_ID FROM Student_Section WHERE SECTION_ID = :sectionID");
+		$queryCount->bindParam(':sectionID', $sectionID);
+		$resultCount = $queryCount->execute();
+		$numOfStudents = count($resultCount);
+		$resultCount->finalize();
 		
-		$result->finalize();
-		// clean up any objects
-		$sqlite->close();
-		return "Success";
+		$queryMax = $sqlite->prepare("SELECT MAX_STUDENTS FROM Section WHERE ID = :sectionID");
+		$queryMax->bindParam(':sectionID', $sectionID);
+		$resultMax = $queryMax->execute();
+		
+		if ($recordMax = $resultMax->fetchArray(SQLITE3_ASSOC)) 
+		{
+			$resultMax->finalize();
+			if (!isset($recordMax['MAX_STUDENTS']))
+			{
+				if ($numOfStudents < $recordMax['MAX_STUDENTS'])
+				{
+					$query = $sqlite->prepare("INSERT INTO Student_Section (STUDENT_ID, SECTION_ID) VALUES (:studentID, :sectionID)");
+					$query->bindParam(':studentID', $studentID);
+					$query->bindParam(':sectionID', $sectionID);
+					$result = $query->execute();
+					
+					$result->finalize();
+					// clean up any objects
+					$sqlite->close();
+					return "Success";
+				} else
+				{
+					return "Section is full.";
+				}
+			}
+		}
 	}
 	catch (Exception $exception)
 	{
@@ -711,7 +833,7 @@ function waitlistStudent($studentID, $sectionID)
 	try
 	{
 		date_default_timezone_set('America/New_York');
-		$addedDate = date('m-d-Y');
+		$addedDate = date('Y-m-d H:i:s.000');
 		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 		$sqlite->enableExceptions(true);
 		
@@ -815,6 +937,232 @@ function getPreReqs($courseID)
 		// clean up any objects
 		$sqlite->close();
 		return $record;
+	}
+	catch (Exception $exception)
+	{
+		if ($GLOBALS ["sqliteDebug"]) 
+		{
+			return $exception->getMessage();
+		}
+		logError($exception);
+	}
+}
+function getProfessorUser($userID)
+{
+	try
+	{
+		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+		$sqlite->enableExceptions(true);
+		
+		//prepare query to protect from sql injection
+		$query = $sqlite->prepare("SELECT User.ID, User.FIRSTNAME, User.LASTNAME, User.EMAIL, User.ROLE FROM User JOIN Professor ON Professor.USER_ID = User.ID WHERE User.ID=:userID");
+		$query->bindParam(':userID', $userID);
+		$result = $query->execute();
+		
+		if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
+		{
+			$result->finalize();
+			// clean up any objects
+			$sqlite->close();
+			return $record;
+		}
+	}
+	catch (Exception $exception)
+	{
+		if ($GLOBALS ["sqliteDebug"]) 
+		{
+			return $exception->getMessage();
+		}
+		logError($exception);
+	}
+}
+
+function getSectionProfessor($sectionID)
+{
+	try
+	{
+		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+		$sqlite->enableExceptions(true);
+		
+		//prepare query to protect from sql injection
+		$query = $sqlite->prepare("SELECT * FROM Section_Professor WHERE SECTION_ID=:sectionID");
+		$query->bindParam(':sectionID', $sectionID);
+		$result = $query->execute();
+		
+		$record = array();
+		while($arr=$result->fetchArray(SQLITE3_ASSOC)) 
+		{
+			array_push($record, $arr);
+		}
+		$result->finalize();
+		// clean up any objects
+		$sqlite->close();
+		return $record;
+	}
+	catch (Exception $exception)
+	{
+		if ($GLOBALS ["sqliteDebug"]) 
+		{
+			return $exception->getMessage();
+		}
+		logError($exception);
+	}
+}
+
+function updateCourse($id, $courseCode, $courseName, $credits, $gpa)
+{
+	try
+	{
+		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+		$sqlite->enableExceptions(true);
+		
+		
+		$query = $sqlite->prepare("UPDATE Course SET COURSE_CODE = :code, NAME = :name, CREDITS = :credits, MIN_GPA = :gpa WHERE ID = :id");
+		$query->bindParam(':code', $courseCode);
+		$query->bindParam(':name', $courseName);
+		$query->bindParam(':credits', $credits);
+		$query->bindParam(':gpa', $gpa);
+		$query->bindParam(':id', $id);
+		$result = $query->execute();
+		
+		if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
+		{
+			$result->finalize();
+			// clean up any objects
+			$sqlite->close();
+			return $record;
+		}
+	}
+	catch (Exception $exception)
+	{
+		if ($GLOBALS ["sqliteDebug"]) 
+		{
+			return $exception->getMessage();
+		}
+		logError($exception);
+	}
+}
+
+function updateSection($id, $maxStudents, $professorID, $courseID, $termID, $classroomID)
+{
+	try
+	{
+		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+		$sqlite->enableExceptions(true);
+		
+		$query = $sqlite->prepare("UPDATE Section SET MAX_STUDENTS = :maxStudents, PROFESSOR_ID = :professorID, COURSE_ID = :courseID, TERM_ID = :termID, CLASSROOM_ID = :classroomID WHERE ID = :id");
+		$query->bindParam(':maxStudents', $maxStudents);
+		$query->bindParam(':professorID', $professorID);
+		$query->bindParam(':courseID', $courseID);
+		$query->bindParam(':termID', $termID);
+		$query->bindParam(':classroomID', $classroomID);
+		$query->bindParam(':id', $id);
+		$result = $query->execute();
+		
+		$result->finalize();
+		// clean up any objects
+		$sqlite->close();
+		return "Success";
+	}
+	catch (Exception $exception)
+	{
+		if ($GLOBALS ["sqliteDebug"]) 
+		{
+			return $exception->getMessage();
+		}
+		logError($exception);
+	}
+}
+
+function getStudentWaitlist($studentID)
+{
+	try
+	{
+		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+		$sqlite->enableExceptions(true);
+		
+		//prepare query to protect from sql injection
+		$query = $sqlite->prepare("SELECT SECTION_ID FROM Waitlist WHERE STUDENT_ID=:studentID");
+		$query->bindParam(':studentID', $studentID);
+		$result = $query->execute();
+		
+		$record = array();
+		while($arr=$result->fetchArray(SQLITE3_ASSOC))
+		{
+			array_push($record, $arr);
+		}
+		$result->finalize();
+		// clean up any objects
+		$sqlite->close();
+		return $record;
+	}
+	catch (Exception $exception)
+	{
+		if ($GLOBALS ["sqliteDebug"]) 
+		{
+			return $exception->getMessage();
+		}
+		logError($exception);
+	}
+}
+
+function enrollFromWaitlist($sectionID)
+{
+	try
+	{
+		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+		$sqlite->enableExceptions(true);
+		
+		$queryID = $sqlite->prepare("SELECT STUDENT_ID FROM Waitlist WHERE SECTION_ID = :sectionID ORDER BY date(ADDED_DATE) ASC LIMIT 1");
+		$queryID->bindParam(':sectionID', $sectionID);
+		$resultID = $queryID->execute();
+		
+		if ($recordID = $resultID->fetchArray(SQLITE3_ASSOC))
+		{
+			$resultID->finalize();
+			if (!isset($recordID['STUDENT_ID']))
+			{
+				$enrollment = enrollStudent($recordID['STUDENT_ID'], $sectionID);
+				$waitlistRemoval = withdrawFromWaitlist($recordID['STUDENT_ID'], $sectionID);
+				return "Success";
+			}
+			else
+			{
+				return "No Waitlisted Students";
+			}
+		}
+		else
+		{
+			// This should only ever occur during debugging.
+			return "Error Processing Waitlisted Dates";
+		}
+	}
+	catch (Exception $exception)
+	{
+		if ($GLOBALS ["sqliteDebug"]) 
+		{
+			return $exception->getMessage();
+		}
+		logError($exception);
+	}
+}
+
+function withdrawFromWaitlist($studentID, $sectionID)
+{
+	try
+	{
+		$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+		$sqlite->enableExceptions(true);
+		
+		$query = $sqlite->prepare("DELETE FROM Waitlist WHERE STUDENT_ID=:studentID AND SECTION_ID=:sectionID");
+		$query->bindParam(':studentID', $studentID);
+		$query->bindParam(':sectionID', $sectionID);
+		$result = $query->execute();
+		
+		$result->finalize();
+		// clean up any objects
+		$sqlite->close();
+		return "Success";
 	}
 	catch (Exception $exception)
 	{
