@@ -104,19 +104,14 @@ function facility_management_switch($getFunctions)
 			case "getDevices":
 				return getDevices();
 			case "updateDevice":
-				if (isset($_POST["id"]) && isset($_POST["condition"]) && isset($_POST["checkoutDate"]) && isset($_POST["name"]))
+				if (isset($_POST["id"]) && isset($_POST["condition"]) && isset($_POST["checkoutDate"]) && isset($_POST["checkedOut"]) && isset($_POST["name"]))
 				{
-					if (isset($_POST["userId"])) {
-                        return updateDevice($_POST["id"], $_POST["condition"], $_POST["checkoutDate"], $_POST["name"], $_POST["userId"]);
-                    } else {
-                        return updateDevice($_POST["id"], $_POST["condition"], $_POST["checkoutDate"], $_POST["name"], null);
-
-                    }
+                    return updateDevice($_POST["id"], $_POST["condition"], $_POST["checkoutDate"], $_POST["checkedOut"], $_POST["name"], $_POST["returnDate"], $_POST["userId"]);
 				}
 				else
 				{
-					logError("Missing parameters. updateDevice requires: id, condition, name, userId,");
-					return "Missing parameters. Function updateDevice requires: id, condition, checkoutDate, name, userId.";
+					logError("Missing parameters. updateDevice requires: id, condition, name");
+					return "Missing parameters. Function updateDevice requires: id, condition, checkoutDate, checkedOut, name.";
 				}
 			case "deleteDevice":
 				if (isset($_POST["uid"]))
@@ -396,16 +391,18 @@ function getDevice($id)
     }
 }
 
-function updateDevice($id, $condition, $checkoutDate, $name, $userId)
+function updateDevice($id, $condition, $checkoutDate, $checkedOut, $name, $returnDate, $userId)
 {
 	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 	$sqlite->enableExceptions(true);
 
-	$query = $sqlite->prepare("UPDATE Device SET CONDITION = :condition, CHECK_OUT_DATE = :checkoutDate, NAME = :name, USER_ID = :userId WHERE ID = :id");
+	$query = $sqlite->prepare("UPDATE Device SET CONDITION = :condition, CHECK_OUT_DATE = :checkoutDate, NAME = :name, USER_ID = :userId, CHECKED_OUT = :checkedOut, RETURN_DATE = :returnDate WHERE ID = :id");
 	$query->bindParam(':id', $id);
 	$query->bindParam(':condition', $condition);
 	$query->bindParam(':checkoutDate', $checkoutDate);
+	$query->bindParam(':checkedOut', $checkedOut);
 	$query->bindParam(':name', $name);
+	$query->bindParam(':returnDate', $returnDate);
 	$query->bindParam(':userId', $userId);
 	$result = $query->execute();
 
