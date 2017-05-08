@@ -4,6 +4,19 @@
 //Facilities Management//
 /////////////////////////
 
+function create_response_error($listParameters) {
+
+	$error_message = "The function parameters missing are : ";
+	foreach ($listParameters as $parameterName => $parameterValue) {
+		if(!$parameterValue) {
+			$error_message = $error_message . $parameterName.",";
+		}
+	}
+    $error_message = substr($error_message, 0, -1);
+    $result = Array("error" => $error_message);
+	return $result;
+}
+
 // Switchboard to Facilities Management Functions
 function facility_management_switch($getFunctions)
 {
@@ -28,8 +41,15 @@ function facility_management_switch($getFunctions)
 				}
 				else
 				{
-					logError("Missing parameters. addClassroom requires: building, room, capacity");
-					return "Missing parameters. Function addClassroom requires: building, room, capacity.";
+//					logError("Missing parameters. addClassroom requires: building, room, capacity");
+//					return "Missing parameters. Function addClassroom requires: building, room, capacity.";
+                    $listParameters = array("building" => isset($_POST["building"]),
+											"room"=> isset($_POST["room"]),
+											"capacity"=> isset($_POST["capacity"])
+						);
+                    $result = create_response_error($listParameters);
+                    logError($result["error"]);
+                    return $result;
 				}
 			case "getClassroom":
 				if (isset($_GET["id"]))
@@ -44,7 +64,7 @@ function facility_management_switch($getFunctions)
 			case "updateClassroom":
 				if (isset($_POST["id"]) && isset($_POST["building"]) && isset($_POST["room"]) && isset($_POST["capacity"]))
 				{
-					return updateClassroom($_POST["id"], $_POST["building"], $_POST["room"], $_POST["capacity"]);
+					return updateClassroom($_POST["id"], $_POST["capacity"], $_POST["room"], $_POST["building"]);
 				}
 				else
 				{
@@ -98,20 +118,22 @@ function facility_management_switch($getFunctions)
 				}
 				else
 				{
-					logError("Missing parameters. getDevice requires: id");
-					return "Missing parameters. Function getDevice requires: id.";
+					$listParameters = array('id' => isset($_GET["id"]));
+					$result = create_response_error($listParameters);
+					logError($result["error"]);
+					return $result;
 				}
 			case "getDevices":
 				return getDevices();
 			case "updateDevice":
-				if (isset($_POST["id"]) && isset($_POST["condition"]) && isset($_POST["checkoutDate"]) && isset($_POST["name"]) && isset($_POST["userId"]))
+				if (isset($_POST["id"]) && isset($_POST["condition"]) && isset($_POST["checkoutDate"]) && isset($_POST["checkedOut"]) && isset($_POST["name"]))
 				{
-					return updateDevice($_POST["id"], $_POST["condition"], $_POST["checkoutDate"], $_POST["name"], $_POST["userId"]);
+                    return updateDevice($_POST["id"], $_POST["condition"], $_POST["checkoutDate"], $_POST["checkedOut"], $_POST["name"], $_POST["returnDate"], $_POST["userId"]);
 				}
 				else
 				{
-					logError("Missing parameters. updateDevice requires: id, condition, name, userId,");
-					return "Missing parameters. Function updateDevice requires: id, condition, checkoutDate, name, userId.";
+					logError("Missing parameters. updateDevice requires: id, condition, name");
+					return "Missing parameters. Function updateDevice requires: id, condition, checkoutDate, checkedOut, name.";
 				}
 			case "deleteDevice":
 				if (isset($_POST["uid"]))
@@ -361,7 +383,6 @@ function getDevices()
 	$sqlite->enableExceptions(true);
 	$query = $sqlite->prepare("SELECT * FROM Device");
 	$result = $query->execute();
-
 	$records = array();
 
 	while($row = $result->fetchArray(SQLITE3_ASSOC)) {
@@ -369,7 +390,7 @@ function getDevices()
 	}
 
 	$result->finalize();
-    $sqlite->close();
+        $sqlite->close();
 
 	return $records;
 }
@@ -392,16 +413,18 @@ function getDevice($id)
     }
 }
 
-function updateDevice($id, $condition, $checkoutDate, $name, $userId)
+function updateDevice($id, $condition, $checkoutDate, $checkedOut, $name, $returnDate, $userId)
 {
 	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
 	$sqlite->enableExceptions(true);
 
-	$query = $sqlite->prepare("UPDATE Device SET CONDITION = :condition, CHECK_OUT_DATE = :checkoutDate, NAME = :name, USER_ID = :userId WHERE ID = :id");
+	$query = $sqlite->prepare("UPDATE Device SET CONDITION = :condition, CHECK_OUT_DATE = :checkoutDate, NAME = :name, USER_ID = :userId, CHECKED_OUT = :checkedOut, RETURN_DATE = :returnDate WHERE ID = :id");
 	$query->bindParam(':id', $id);
 	$query->bindParam(':condition', $condition);
 	$query->bindParam(':checkoutDate', $checkoutDate);
+	$query->bindParam(':checkedOut', $checkedOut);
 	$query->bindParam(':name', $name);
+	$query->bindParam(':returnDate', $returnDate);
 	$query->bindParam(':userId', $userId);
 	$result = $query->execute();
 

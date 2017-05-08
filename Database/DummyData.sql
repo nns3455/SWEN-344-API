@@ -1,5 +1,5 @@
-/* This script is intended only for testing purposes and will insert a bunch of dummy data into
-the tables. For usersnames and passwords see the inserts below
+/* This script is intended only for testing purposes and will insert a bunch of dummy data into 
+the tables. For usersnames and passwords see the inserts below 
 The password used for each user is 'password' with no quotes, encrypted using password_hash()
 */
 
@@ -29,12 +29,17 @@ DELETE FROM Classroom;
 DELETE FROM UniversityEmployee;
 DELETE FROM Grade;
 
-/*
+/* 
 User data
 */
 
 INSERT INTO User (USERNAME, PASSWORD, FIRSTNAME, LASTNAME, EMAIL, ROLE) VALUES ("Student1", "$2y$10$OPdL0s8h6N61JJHQIpmhGOmy9yuzi38azcjcF/pojNsnBFn0tDcKm", "John", "Doe", "JDoe@email.com", "Student");
 INSERT INTO User (USERNAME, PASSWORD, FIRSTNAME, LASTNAME, EMAIL, ROLE) VALUES ("Student2", "$2y$10$OPdL0s8h6N61JJHQIpmhGOmy9yuzi38azcjcF/pojNsnBFn0tDcKm", "Jane", "Doe", "JaDoe@email.com", "Student");
+INSERT INTO User (USERNAME, PASSWORD, FIRSTNAME, LASTNAME, EMAIL, ROLE) VALUES ("Student3", "$2y$10$OPdL0s8h6N61JJHQIpmhGOmy9yuzi38azcjcF/pojNsnBFn0tDcKm", "John", "Smith", "Smithe@email.com", "Student");
+INSERT INTO User (USERNAME, PASSWORD, FIRSTNAME, LASTNAME, EMAIL, ROLE) VALUES ("Student4", "$2y$10$OPdL0s8h6N61JJHQIpmhGOmy9yuzi38azcjcF/pojNsnBFn0tDcKm", "Jane", "Smith", "Smithe@email.com", "Student");
+INSERT INTO User (USERNAME, PASSWORD, FIRSTNAME, LASTNAME, EMAIL, ROLE) VALUES ("Student5", "$2y$10$OPdL0s8h6N61JJHQIpmhGOmy9yuzi38azcjcF/pojNsnBFn0tDcKm", "Bill", "Smith", "Smithe@email.com", "Student");
+INSERT INTO User (USERNAME, PASSWORD, FIRSTNAME, LASTNAME, EMAIL, ROLE) VALUES ("Student6", "$2y$10$OPdL0s8h6N61JJHQIpmhGOmy9yuzi38azcjcF/pojNsnBFn0tDcKm", "Sophie", "Smith", "Smithe@email.com", "Student");
+INSERT INTO User (USERNAME, PASSWORD, FIRSTNAME, LASTNAME, EMAIL, ROLE) VALUES ("Student8", "$2y$10$OPdL0s8h6N61JJHQIpmhGOmy9yuzi38azcjcF/pojNsnBFn0tDcKm", "John", "Smith", "Smithe@email.com", "Student");
 INSERT INTO User (USERNAME, PASSWORD, FIRSTNAME, LASTNAME, EMAIL, ROLE) VALUES ("Student3", "$2y$10$OPdL0s8h6N61JJHQIpmhGOmy9yuzi38azcjcF/pojNsnBFn0tDcKm", "John", "Smith", "Smithe@email.com", "Student");
 INSERT INTO User (USERNAME, PASSWORD, FIRSTNAME, LASTNAME, EMAIL, ROLE) VALUES ("Admin1", "$2y$10$OPdL0s8h6N61JJHQIpmhGOmy9yuzi38azcjcF/pojNsnBFn0tDcKm", "Sammy", "Gray", "Gray@email.com", "Admin");
 INSERT INTO User (USERNAME, PASSWORD, FIRSTNAME, LASTNAME, EMAIL, ROLE) VALUES ("Professor1", "$2y$10$OPdL0s8h6N61JJHQIpmhGOmy9yuzi38azcjcF/pojNsnBFn0tDcKm", "Superman", "Clark", "Clark@email.com", "Professor");
@@ -42,7 +47,11 @@ INSERT INTO User (USERNAME, PASSWORD, FIRSTNAME, LASTNAME, EMAIL, ROLE) VALUES (
 
 INSERT INTO Student (USER_ID, YEAR_LEVEL, GPA) VALUES (1, 3, 3.4);
 INSERT INTO Student (USER_ID, YEAR_LEVEL, GPA) VALUES (2, 1, 1.9);
-INSERT INTO Student (USER_ID, YEAR_LEVEL, GPA) VALUES (3, 2, 4.0);
+INSERT INTO Student (USER_ID, YEAR_LEVEL, GPA) VALUES (3, 5, 4.0);
+INSERT INTO Student (USER_ID, YEAR_LEVEL, GPA) VALUES (4, 2, 4.0);
+INSERT INTO Student (USER_ID, YEAR_LEVEL, GPA) VALUES (5, 2, 4.0);
+INSERT INTO Student (USER_ID, YEAR_LEVEL, GPA) VALUES (6, 2, 4.0);
+INSERT INTO Student (USER_ID, YEAR_LEVEL, GPA) VALUES (7, 2, 4.0);
 
 INSERT INTO Professor (USER_ID) VALUES (1);
 INSERT INTO Professor (USER_ID) VALUES (2);
@@ -75,18 +84,26 @@ INSERT INTO Course (COURSE_CODE, NAME, CREDITS, MIN_GPA, AVAILABILITY) VALUES ("
 INSERT INTO Course (COURSE_CODE, NAME, CREDITS, MIN_GPA, AVAILABILITY) VALUES ("WINE-101", "Wines of the World", 1 , 2, 1);
 INSERT INTO Section (MAX_STUDENTS, PROFESSOR_ID, COURSE_ID, TERM_ID, CLASSROOM_ID, AVAILABILITY) VALUES (20, 1, 1, 1, 1, 1);
 INSERT INTO Section (MAX_STUDENTS, PROFESSOR_ID, COURSE_ID, TERM_ID, CLASSROOM_ID, AVAILABILITY) VALUES (15, 1, 2, 1, 3, 1);
-INSERT INTO Section (MAX_STUDENTS, PROFESSOR_ID, COURSE_ID, TERM_ID, CLASSROOM_ID, AVAILABILITY) VALUES (10, 1, 3, 2, 2, 1);
+INSERT INTO Section (MAX_STUDENTS, PROFESSOR_ID, COURSE_ID, TERM_ID, CLASSROOM_ID, AVAILABILITY) VALUES (100, 1, 3, 2, 2, 1);
+INSERT INTO Section (MAX_STUDENTS, PROFESSOR_ID, COURSE_ID, TERM_ID, CLASSROOM_ID, AVAILABILITY) VALUES (30, 1, 3, 2, 2, 1);
+INSERT INTO Section (MAX_STUDENTS, PROFESSOR_ID, COURSE_ID, TERM_ID, CLASSROOM_ID, AVAILABILITY) VALUES (10, 1, 2, 2, 2, 0);
 
 INSERT INTO Student_Section (STUDENT_ID, SECTION_ID) VALUES (1, 1);
 INSERT INTO Student_Section (STUDENT_ID, SECTION_ID) VALUES (2, 1);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/master
 INSERT INTO Student_Section (STUDENT_ID, SECTION_ID) VALUES (2, 3);
 INSERT INTO Student_Section (STUDENT_ID, SECTION_ID) VALUES (2, 2);
 INSERT INTO Student_Section (STUDENT_ID, SECTION_ID) VALUES (5, 4);
 INSERT INTO Student_Section (STUDENT_ID, SECTION_ID) VALUES (3, 1);
 INSERT INTO Student_Section (STUDENT_ID, SECTION_ID) VALUES (4, 6);
+<<<<<<< HEAD
 >>>>>>> refs/remotes/roda0313/master
+=======
+>>>>>>> origin/master
 
 INSERT INTO Waitlist (SECTION_ID, STUDENT_ID, ADDED_DATE) VALUES (1, 1, "2017-09-29 00:00:00.000");
 INSERT INTO Waitlist (SECTION_ID, STUDENT_ID, ADDED_DATE) VALUES (1, 2, "2017-09-15 00:00:00.000");
@@ -131,20 +148,17 @@ INSERT INTO Classroom (CAPACITY, ROOM_NUM, BUILDING_ID) VALUES (20, 2010, 70);
 INSERT INTO Classroom (CAPACITY, ROOM_NUM, BUILDING_ID) VALUES (100, 1010, 20);
 INSERT INTO Classroom (CAPACITY, ROOM_NUM, BUILDING_ID) VALUES (10, 3050, 70);
 
-INSERT INTO Device (ID, NAME, CONDITION) VALUES (1, "HAL9000", "Destroyed");
-INSERT INTO Device (ID, NAME, CONDITION) VALUES (2, "ENIAC", "Chipper");
-INSERT INTO Device (ID, NAME, CONDITION) VALUES (3, "iPhone7", "Immaculate");
-
 /*
 HR Data
 */
-INSERT INTO UniversityEmployee (USER_ID, MANAGER_ID, TITLE, ADDRESS, SALARY) VALUES (1, 1, "Admin", "Address", "2000000");
-INSERT INTO UniversityEmployee (USER_ID, MANAGER_ID, TITLE, ADDRESS, SALARY) VALUES (2, 4, "Manager", "Address1", "75000");
-INSERT INTO UniversityEmployee (USER_ID, MANAGER_ID, TITLE, ADDRESS, SALARY) VALUES (3, 2, "Jokester", "Address2", "50000");
-INSERT INTO UniversityEmployee (USER_ID, MANAGER_ID, TITLE, ADDRESS, SALARY) VALUES (4, 1, "CEO", "Address3", "1000000");
+INSERT INTO UniversityEmployee (USER_ID, MANAGER_ID, TITLE, ADDRESS, PHONE, SALARY) VALUES (1, 1, "Admin", "Address", "8461226487", 2000000.0);
+INSERT INTO UniversityEmployee (USER_ID, MANAGER_ID, TITLE, ADDRESS, PHONE, SALARY) VALUES (2, 4, "Manager", "Address1", "6481585522", 75000.0);
+INSERT INTO UniversityEmployee (USER_ID, MANAGER_ID, TITLE, ADDRESS, PHONE, SALARY) VALUES (3, 2, "Jokester", "Address2", "5851354846", 50000.0);
+INSERT INTO UniversityEmployee (USER_ID, MANAGER_ID, TITLE, ADDRESS, PHONE, SALARY) VALUES (4, 1, "CEO", "Address3", "3153648154", 1000000.0);
 
 /*
 Grading Data
 */
 INSERT INTO Grade (VALUE, IS_LOCKED, LAST_MODIFIED, STUDENT_SECTION_ID) VALUES (90, 0, "2017-03-28 15:30:00.000", 1);
 INSERT INTO Grade (VALUE, IS_LOCKED, LAST_MODIFIED, STUDENT_SECTION_ID) VALUES (75, 0, "2017-03-28 15:30:00.000", 2);
+
