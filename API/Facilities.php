@@ -4,6 +4,19 @@
 //Facilities Management//
 /////////////////////////
 
+function create_response_error($listParameters) {
+
+	$error_message = "The function parameters missing are : ";
+	foreach ($listParameters as $parameterName => $parameterValue) {
+		if(!$parameterValue) {
+			$error_message = $error_message . $parameterName.",";
+		}
+	}
+    $error_message = substr($error_message, 0, -1);
+    $result = Array("error" => $error_message);
+	return $result;
+}
+
 // Switchboard to Facilities Management Functions
 function facility_management_switch($getFunctions)
 {
@@ -28,8 +41,15 @@ function facility_management_switch($getFunctions)
 				}
 				else
 				{
-					logError("Missing parameters. addClassroom requires: building, room, capacity");
-					return "Missing parameters. Function addClassroom requires: building, room, capacity.";
+//					logError("Missing parameters. addClassroom requires: building, room, capacity");
+//					return "Missing parameters. Function addClassroom requires: building, room, capacity.";
+                    $listParameters = array("building" => isset($_POST["building"]),
+											"room"=> isset($_POST["room"]),
+											"capacity"=> isset($_POST["capacity"])
+						);
+                    $result = create_response_error($listParameters);
+                    logError($result["error"]);
+                    return $result;
 				}
 			case "getClassroom":
 				if (isset($_GET["id"]))
@@ -98,8 +118,10 @@ function facility_management_switch($getFunctions)
 				}
 				else
 				{
-					logError("Missing parameters. getDevice requires: id");
-					return "Missing parameters. Function getDevice requires: id.";
+					$listParameters = array('id' => isset($_GET["id"]));
+					$result = create_response_error($listParameters);
+					logError($result["error"]);
+					return $result;
 				}
 			case "getDevices":
 				return getDevices();
