@@ -21,7 +21,7 @@ function create_response_error($listParameters) {
 function facility_management_switch($getFunctions)
 {
 	// Define the possible Facilities Management function URLs which the page can be accessed from
-	$possible_function_url = array("getClassrooms", "addClassroom", "getClassroom", "updateClassroom", "deleteClassroom", "reserveClassroom", "searchClassrooms", "addDevice", "getDevices", "getDevice", "updateDevice", "deleteDevice");
+	$possible_function_url = array("getClassrooms", "addClassroom", "getClassroom", "getClassroomReservations", "updateClassroom", "deleteClassroom", "reserveClassroom", "searchClassrooms", "addDevice", "getDevices", "getDevice", "updateDevice", "deleteDevice");
 
 	if ($getFunctions)
 	{
@@ -61,6 +61,18 @@ function facility_management_switch($getFunctions)
 					logError("Missing parameters. getClassroom requires: id");
 					return "Missing parameters. Function getClassroom requires: id.";
 				}
+                
+            case "getClassroomReservations":
+                if (isset($_GET["id"]))
+				{
+					return getClassroomReservations($_GET["id"]);
+				}
+				else
+				{
+					logError("Missing parameters. getClassroomReservations requires: id");
+					return "Missing parameters. Function getClassroomReservations requires: id.";
+				}
+                
 			case "updateClassroom":
 				if (isset($_POST["id"]) && isset($_POST["building"]) && isset($_POST["room"]) && isset($_POST["capacity"]))
 				{
@@ -250,6 +262,25 @@ function deleteClassroom($id)
 	$result->finalize();
 	$sqlite->close();
 
+	return $result;
+}
+
+function getClassroomReservations($id)
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+	
+	$query = $sqlite->prepare("SELECT * FROM Reservation WHERE CLASSROOM_ID=:id");
+	$query->bindParam(':id', $id);		
+	$result = $query->execute();
+	
+	if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
+    {
+        $result->finalize();
+        $sqlite->close();
+        return $record;
+    }
+	
 	return $result;
 }
 
