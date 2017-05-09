@@ -171,7 +171,7 @@ function facility_management_switch($getFunctions)
 				}
 				else
 				{
-                    $listParameters = array('id' => isset($_GET["id"]),
+                    $listParameters = array('id' => isset($_POST["id"]),
                         "condition" => isset($_POST["condition"]),
                         "checkoutDate"=> isset($_POST["checkoutDate"]),
                         "checkedOut"=> isset($_POST["checkedOut"]),
