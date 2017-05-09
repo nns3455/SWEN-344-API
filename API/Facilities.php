@@ -6,7 +6,7 @@
 
 function create_response_error($listParameters) {
 
-	$error_message = "The function parameters missing are : ";
+	$error_message = "The function parameters missing are ";
 	foreach ($listParameters as $parameterName => $parameterValue) {
 		if(!$parameterValue) {
 			$error_message = $error_message . $parameterName.",";
@@ -21,7 +21,7 @@ function create_response_error($listParameters) {
 function facility_management_switch($getFunctions)
 {
 	// Define the possible Facilities Management function URLs which the page can be accessed from
-	$possible_function_url = array("getClassrooms", "addClassroom", "getClassroom", "updateClassroom", "deleteClassroom", "reserveClassroom", "searchClassrooms", "addDevice", "getDevices", "getDevice", "updateDevice", "deleteDevice");
+	$possible_function_url = array("getClassrooms", "addClassroom", "getClassroom", "getClassroomReservations", "updateClassroom", "deleteClassroom", "reserveClassroom", "searchClassrooms", "addDevice", "getDevices", "getDevice", "updateDevice", "deleteDevice");
 
 	if ($getFunctions)
 	{
@@ -41,8 +41,6 @@ function facility_management_switch($getFunctions)
 				}
 				else
 				{
-//					logError("Missing parameters. addClassroom requires: building, room, capacity");
-//					return "Missing parameters. Function addClassroom requires: building, room, capacity.";
                     $listParameters = array("building" => isset($_POST["building"]),
 											"room"=> isset($_POST["room"]),
 											"capacity"=> isset($_POST["capacity"])
@@ -58,9 +56,25 @@ function facility_management_switch($getFunctions)
 				}
 				else
 				{
-					logError("Missing parameters. getClassroom requires: id");
-					return "Missing parameters. Function getClassroom requires: id.";
+                    $listParameters = array('id' => isset($_GET["id"]));
+                    $result = create_response_error($listParameters);
+                    logError($result["error"]);
+                    return $result;
 				}
+                
+            case "getClassroomReservations":
+                if (isset($_GET["id"]))
+				{
+					return getClassroomReservations($_GET["id"]);
+				}
+				else
+				{
+                    $listParameters = array('id' => isset($_GET["id"]));
+                    $result = create_response_error($listParameters);
+                    logError($result["error"]);
+                    return $result;
+				}
+                
 			case "updateClassroom":
 				if (isset($_POST["id"]) && isset($_POST["building"]) && isset($_POST["room"]) && isset($_POST["capacity"]))
 				{
@@ -68,8 +82,14 @@ function facility_management_switch($getFunctions)
 				}
 				else
 				{
-					logError("Missing parameters. updateClassroom requires: id");
-					return "Missing parameters. Function updateClassroom requires: id.";
+                    $listParameters = array('id' => isset($_POST["id"]),
+                    	"building" => isset($_POST["building"]),
+                        "room"=> isset($_POST["room"]),
+                        "capacity"=> isset($_POST["capacity"])
+                    );
+                    $result = create_response_error($listParameters);
+                    logError($result["error"]);
+                    return $result;
 				}
 			case "deleteClassroom":
 				if (isset($_POST["id"]))
@@ -78,8 +98,10 @@ function facility_management_switch($getFunctions)
 				}
 				else
 				{
-					logError("Missing parameters. deleteClassroom requires: id");
-					return "Missing parameters. Function deleteClassroom requires: id.";
+                    $listParameters = array('id' => isset($_POST["id"]));
+                    $result = create_response_error($listParameters);
+                    logError($result["error"]);
+                    return $result;
 				}
 			case "reserveClassroom":
 				if (isset($_POST["id"]) && isset($_POST["day"]) && isset($_POST["section"]) && isset($_POST["timeslot"]) && isset($_POST["length"]))
@@ -88,8 +110,14 @@ function facility_management_switch($getFunctions)
 				}
 				else
 				{
-					logError("Missing parameters. reserveClassroom requires: id, section, day, timeslot");
-					return "Missing parameters. Function reserveClassroom requires: id, section, day, timeslot.";
+                    $listParameters = array('id' => isset($_POST["id"]),
+                        "building" => isset($_POST["building"]),
+                        "room"=> isset($_POST["room"]),
+                        "capacity"=> isset($_POST["capacity"])
+                    );
+                    $result = create_response_error($listParameters);
+                    logError($result["error"]);
+                    return $result;
 				}
 			case "searchClassrooms":
 				if (isset($_GET["size"]) && isset($_GET["semester"]) && isset($_GET["day"]) && isset($_GET["length"]))
@@ -98,8 +126,14 @@ function facility_management_switch($getFunctions)
 				}
 				else
 				{
-					logError("Missing parameters. searchClassrooms requires: size, semester, day, length");
-					return "Missing parameters. Function searchClassrooms requires: size, semester, day, length.";
+                    $listParameters = array('id' => isset($_GET["size"]),
+                        "building" => isset($_GET["semester"]),
+                        "room"=> isset($_GET["day"]),
+                        "capacity"=> isset($_GET["length"])
+                    );
+                    $result = create_response_error($listParameters);
+                    logError($result["error"]);
+                    return $result;
 				}
 			case "addDevice":
 				if (isset($_POST["name"]) && isset($_POST["condition"]))
@@ -108,8 +142,13 @@ function facility_management_switch($getFunctions)
 				}
 				else
 				{
-					logError("Missing parameters. addDevice requires: name, condition");
-					return "Missing parameters. Function addDevice requires: name, condition.";
+                    $listParameters = array(
+                        "name" => isset($_POST["name"]),
+                        "condition"=> isset($_POST["condition"])
+                    );
+                    $result = create_response_error($listParameters);
+                    logError($result["error"]);
+                    return $result;
 				}
 			case "getDevice":
 				if (isset($_GET["id"]))
@@ -132,8 +171,17 @@ function facility_management_switch($getFunctions)
 				}
 				else
 				{
-					logError("Missing parameters. updateDevice requires: id, condition, name");
-					return "Missing parameters. Function updateDevice requires: id, condition, checkoutDate, checkedOut, name.";
+                    $listParameters = array('id' => isset($_GET["id"]),
+                        "condition" => isset($_POST["condition"]),
+                        "checkoutDate"=> isset($_POST["checkoutDate"]),
+                        "checkedOut"=> isset($_POST["checkedOut"]),
+                        "name"=> isset($_POST["name"]),
+                        "returnDate"=> isset($_POST["returnDate"]),
+                        "userId"=> isset($_POST["userId"])
+                    );
+                    $result = create_response_error($listParameters);
+                    logError($result["error"]);
+                    return $result;
 				}
 			case "deleteDevice":
 				if (isset($_POST["uid"]))
@@ -142,8 +190,10 @@ function facility_management_switch($getFunctions)
 				}
 				else
 				{
-					logError("Missing parameter. deleteDevice requires: uid");
-					return "Missing parameter. Function deleteDevice requires: uid.";
+                    $listParameters = array('uid' => isset($_POST["uid"]));
+                    $result = create_response_error($listParameters);
+                    logError($result["error"]);
+                    return $result;
 				}
 		}
 	}
@@ -250,6 +300,25 @@ function deleteClassroom($id)
 	$result->finalize();
 	$sqlite->close();
 
+	return $result;
+}
+
+function getClassroomReservations($id)
+{
+	$sqlite = new SQLite3($GLOBALS ["databaseFile"]);
+	$sqlite->enableExceptions(true);
+	
+	$query = $sqlite->prepare("SELECT * FROM Reservation WHERE CLASSROOM_ID=:id");
+	$query->bindParam(':id', $id);		
+	$result = $query->execute();
+	
+	if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
+    {
+        $result->finalize();
+        $sqlite->close();
+        return $record;
+    }
+	
 	return $result;
 }
 
