@@ -111,9 +111,10 @@ function facility_management_switch($getFunctions)
 				else
 				{
                     $listParameters = array('id' => isset($_POST["id"]),
-                        "building" => isset($_POST["building"]),
-                        "room"=> isset($_POST["room"]),
-                        "capacity"=> isset($_POST["capacity"])
+                        "day" => isset($_POST["day"]),
+                        "section"=> isset($_POST["section"]),
+                        "timeslot"=> isset($_POST["timeslot"]),
+                        "length"=> isset($_POST["length"])
                     );
                     $result = create_response_error($listParameters);
                     logError($result["error"]);
