@@ -312,14 +312,16 @@ function getClassroomReservations($id)
 	$query->bindParam(':id', $id);		
 	$result = $query->execute();
 	
-	if ($record = $result->fetchArray(SQLITE3_ASSOC)) 
-    {
-        $result->finalize();
-        $sqlite->close();
-        return $record;
-    }
-	
-	return $result;
+	$records = array();
+
+	while($row = $result->fetchArray(SQLITE3_ASSOC)) {
+		array_push($records, $row);
+	}
+    
+    $result->finalize();
+    $sqlite->close();
+
+	return $records;
 }
 
 function reserveClassroom($id, $day, $section, $timeslot, $length)
